@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <!--
+        This file is part of Tryton & Nereid. The COPYRIGHT file at the
+        top level of this repository contains the full copyright notices
+        and license terms.
+    -->
+<tryton>
+    <data>
+        <!-- Menus -->
+        <record model="ir.ui.view" id="cms_menus_view_form">
+            <field name="model">nereid.cms.menus</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+			<![CDATA[
+                <form string="CMS Menu">
+				    <label name="name"/>
+				    <field name="name"/>
+				    <label name="unique_identifier"/>
+				    <field name="unique_identifier"/>
+                    <label name="site"/>
+                    <field name="site"/>
+                    <label name="model"/>
+                    <field name="model"/>
+                    <label name="active"/>
+                    <field name="active"/>
+                    <notebook colspan="4">
+                        <page string="Fields" id="fields">
+                            <label name="parent_field"/>
+                            <field name="parent_field"/>
+                            <label name="children_field"/>
+                            <field name="children_field"/>
+                            <label name="uri_field"/>
+                            <field name="uri_field"/>
+                            <label name="identifier_field"/>
+                            <field name="identifier_field"/>
+                        </page>
+                        <page string="Description" id="description">
+                            <field name="description" colspan="4"/>
+                        </page>
+                    </notebook>
+                </form>
+			]]>
+            </field>
+        </record>
+        <record model="ir.ui.view" id="cms_menus_view_tree">
+            <field name="model">nereid.cms.menus</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+			<![CDATA[
+                <tree string="CMS Menus">
+                    <field name="name"/>
+                    <field name="unique_identifier"/>
+                    <field name="model"/>
+                    <field name="active"/>
+			    </tree>
+			]]>
+            </field>
+        </record>
+        <record model="ir.action.act_window" id="act_cms_menus_form">
+            <field name="name">CMS Menus</field>
+            <field name="res_model">nereid.cms.menus</field>
+            <field name="view_type">form</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_cms_menus_form_view1">
+            <field name="sequence" eval="10" />
+            <field name="view" ref="cms_menus_view_tree" />
+            <field name="act_window" ref="act_cms_menus_form" />
+        </record>
+        <record model="ir.action.act_window.view" id="act_cms_menus_form_view2">
+            <field name="sequence" eval="20" />
+            <field name="view" ref="cms_menus_view_form" />
+            <field name="act_window" ref="act_cms_menus_form" />
+        </record>
+        <menuitem name="Menus" sequence="20" id="menu_nereid_cms_menus"
+            parent="nereid_configuration.menu_nereid" 
+            groups="nereid_configuration.group_nereid_admin" />
+        <menuitem name="Menus" sequence="20"
+            id="menu_nereid_cms_menus_all" 
+            parent="menu_nereid_cms_menus"
+            action="act_cms_menus_form" 
+            groups="nereid_configuration.group_nereid_admin" />
+
+        <!-- Menuitems -->
+        <record model="ir.ui.view" id="cms_menuitems_view_form">
+            <field name="model">nereid.cms.menuitems</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+            <![CDATA[
+                <form string="CMS Menuitems">
+                    <label name="name"/>
+                    <field name="name"/>
+                    <label name="unique_identifier"/>
+                    <field name="unique_identifier"/>
+                    <label name="site"/>
+                    <field name="site"/>
+                    <label name="model"/>
+                    <field name="model"/>
+                    <label name="active"/>
+                    <field name="active"/>
+                    <notebook colspan="4">
+                        <page string="Fields" id="fields">
+                            <label name="parent_field"/>
+                            <field name="parent_field"/>
+                            <label name="children_field"/>
+                            <field name="children_field"/>
+                            <label name="uri_field"/>
+                            <field name="uri_field"/>
+                            <label name="identifier_field"/>
+                            <field name="identifier_field"/>
+                        </page>
+                        <page string="Description" id="description">
+                            <field name="description" colspan="4"/>
+                        </page>
+                    </notebook>
+                </form>
+            ]]>
+            </field>
+        </record>
+        <record model="ir.ui.view" id="cms_menuitems_view_tree">
+            <field name="model">nereid.cms.menuitems</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+            <![CDATA[
+                <tree string="CMS Menuitems">
+                    <field name="name"/>
+                    <field name="unique_identifier"/>
+                    <field name="model"/>
+                    <field name="active"/>
+                </tree>
+            ]]>
+            </field>
+        </record>
+        <record model="ir.action.act_window" id="act_cms_menuitems_form">
+            <field name="name">CMS Menuitems</field>
+            <field name="res_model">nereid.cms.menuitems</field>
+            <field name="view_type">form</field>
+        </record>
+        <record model="ir.action.act_window.view" 
+                id="act_cms_menuitems_form_view1">
+            <field name="sequence" eval="10" />
+            <field name="view" ref="cms_menuitems_view_tree" />
+            <field name="act_window" ref="act_cms_menuitems_form" />
+        </record>
+        <record model="ir.action.act_window.view" 
+                id="act_cms_menuitems_form_view2">
+            <field name="sequence" eval="20" />
+            <field name="view" ref="cms_menuitems_view_form" />
+            <field name="act_window" ref="act_cms_menuitems_form" />
+        </record>
+        <menuitem name="Menus" sequence="20"
+            id="menu_nereid_cms_menuitems" 
+            parent="menu_nereid_cms_menus"
+            action="act_cms_menuitems_form" 
+            groups="nereid_configuration.group_nereid_admin" />
+
+        <!-- Articles -->
+        <record model="ir.ui.view" id="cms_article_view_form">
+            <field name="model">nereid.cms.article</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <![CDATA[
+                    <form string="CMS Article">
+                        <group colspan="4" col="4" id="definition">
+                            <label name="title" />
+                            <field name="title" />
+                            <label name="uri" />
+                            <field name="uri" />
+                            <newline />
+                            <label name="category" />
+                            <field name="category" />
+                            <label name="active" />
+                            <field name="active" />
+                            <newline />
+                            <label name="template" />
+                            <field name="template" />
+                        </group>
+                        <notebook colspan="4">
+                            <page string="Article Body" id="article_body">
+                                <separator colspan="3" string="Standard Body" />
+                                <separator colspan="1" string="Parameters" />
+                            <notebook>
+                                <page string="Content" id="content">
+                                    <field name="content" colspan="4" nolabel="1" />
+                                </page>
+                            </notebook>        
+                                <group col="4">
+                                    <label name="sequence" />
+                                    <field name="sequence" />
+                                    <newline/>
+                                    <label name="author" />
+                                    <field name="author" />
+                                    <newline/>
+                                    <label name="create_date" />
+                                    <field name="create_date" />
+                                    <newline/>
+                                    <label name="published_on" />
+                                    <field name="published_on" />
+                                </group>
+                            </page>
+                        </notebook>
+                    </form>
+                ]]>
+            </field>
+        </record>
+
+         <record model="ir.ui.view" id="cms_article_view_tree">
+            <field name="model">nereid.cms.article</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+                <![CDATA[
+                    <tree string="CMS Articles">
+                        <field name="title" />
+                        <field name="uri" />
+                        <field name="category" />
+                        <field name="sequence" />
+                        <field name="author" />
+                        <field name="created_date" />
+                        <field name="published_on" />
+                        <field name="active" />
+                    </tree>
+                ]]>
+            </field>
+        </record>
+
+        <record model="ir.action.act_window" id="action_cms_articles">
+            <field name="name">CMS Articles</field>
+            <field name="res_model">nereid.cms.article</field>
+            <field name="view_type">form</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_cms_menuitems_form_view1">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="cms_article_view_form"/>
+            <field name="act_window" ref="action_cms_articles"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_cms_menuitems_form_view2">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="cms_article_view_tree"/>
+            <field name="act_window" ref="action_cms_articles"/>
+        </record>
+
+        <menuitem action="action_cms_articles" id="menu_cms_articles"
+            name="Articles" parent="nereid_configuration.menu_nereid" />
+    </data>
+</tryton>
