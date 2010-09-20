@@ -5,7 +5,7 @@
 import time
 from trytond.model import ModelSQL, ModelView, fields
 
-class NereidCMSMenus(ModelSQL, ModelView):
+class CMSMenus(ModelSQL, ModelView):
     "Nereid CMS Menus"
     _name = 'nereid.cms.menus'
     _description = __doc__
@@ -51,10 +51,10 @@ class NereidCMSMenus(ModelSQL, ModelView):
                     'The Unique Identifier of the Menu must be unique.')
     ]
 
-NereidCMSMenus()
+CMSMenus()
 
 
-class NereidCMSMenuitems(ModelSQL, ModelView):
+class CMSMenuitems(ModelSQL, ModelView):
     "Nereid CMS Menuitems"
     _name = 'nereid.cms.menuitems'
     _description = __doc__
@@ -96,7 +96,7 @@ class NereidCMSMenuitems(ModelSQL, ModelView):
         return True
 
     def __init__(self):
-        super(NereidCMSMenuitems, self).__init__()
+        super(CMSMenuitems, self).__init__()
         self._constraints += [
             ('check_recursion', 'wrong_recursion')
         ]
@@ -105,10 +105,10 @@ class NereidCMSMenuitems(ModelSQL, ModelView):
             'Error ! You can not create recursive menuitems.',
         })
 
-NereidCMSMenuitems()
+CMSMenuitems()
 
 
-class NereidArticleCategory(ModelSQL, ModelView):
+class ArticleCategory(ModelSQL, ModelView):
     "Article Categories"
     _name = 'nereid.article.category'
     _description = __doc__
@@ -131,7 +131,7 @@ class NereidArticleCategory(ModelSQL, ModelView):
 ArticleCategory()
 
 
-class NereidCMSArticles(ModelSQL, ModelView):
+class CMSArticles(ModelSQL, ModelView):
     "CMS Articles"
     _name = 'nereid.cms.article'
     _inherits = {'nereid.flatpage': 'flatpage_id'}
@@ -163,4 +163,4 @@ class NereidCMSArticles(ModelSQL, ModelView):
     def default_published_on(self, cursor, user, context=None ):
         return time.strftime("%Y-%m-%d %H:%M:%S")
         
-NereidCMSArticles()
+CMSArticles()
