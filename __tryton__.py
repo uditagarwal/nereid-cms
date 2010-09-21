@@ -9,7 +9,7 @@
     'description': '''Nereid CMS''',
     'depends': [
         'nereid_configuration',
-        'nereid_flatpage',
+        'nereid_flatpages',
     ],
     'xml': [
         'cms.xml',

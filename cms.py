@@ -3,6 +3,7 @@
 "Nereid CMS"
 
 import time
+from trytond.pyson import Eval
 from trytond.model import ModelSQL, ModelView, fields
 
 class CMSMenus(ModelSQL, ModelView):
@@ -18,28 +19,32 @@ class CMSMenus(ModelSQL, ModelView):
     site= fields.Many2One('nereid.sites', 'Site')
     active= fields.Boolean('Active')
     
-    model=fields.Many2One('ir.model', 'Open ERP Model', required=True,)
+    model=fields.Many2One(
+        'ir.model', 
+        'Open ERP Model', 
+        required=True
+    )
     parent_field = fields.Many2One('ir.model.field', 'Parent',
         domain=[
-            ('model', '=', Eval('model'))
+            ('model', '=', Eval('model')),
             ('ttype', '=', 'many2one')
         ], required=True
     )
     children_field = fields.Many2One('ir.model.field', 'Children',
         domain=[
-            ('model', '=', Eval('model'))
+            ('model', '=', Eval('model')),
             ('ttype', '=', 'one2many')
         ], required=True
     )
     uri_field = fields.Many2One('ir.model.field', 'URI Field',
         domain=[
-            ('model', '=', Eval('model'))
+            ('model', '=', Eval('model')),
             ('ttype', '=', 'char')
         ], required=True
     )
     identifier_field = fields.Many2One('ir.model.field', 'Identifier Field',
         domain=[
-            ('model', '=', Eval('model'))
+            ('model', '=', Eval('model')),
             ('ttype', '=', 'char')
         ], required=True
     )
