@@ -11,36 +11,37 @@ class CMSMenus(ModelSQL, ModelView):
     _description = __doc__
 
     name= fields.Char('Name', size=100, required=True)
-    unique_identifier = fields.Char('Unique Identifier', 
-                            size=100, required=True,)
+    unique_identifier = fields.Char(
+        'Unique Identifier', 
+        size=100, required=True,)
     description= fields.Text('Description')
     site= fields.Many2One('nereid.sites', 'Site')
     active= fields.Boolean('Active')
     
     model=fields.Many2One('ir.model', 'Open ERP Model', required=True,)
     parent_field = fields.Many2One('ir.model.field', 'Parent',
-                        domain=[
-                            ('model', '=', Eval('model'))
-                            ('ttype', '=', 'many2one')
-                        ], required=True
+        domain=[
+            ('model', '=', Eval('model'))
+            ('ttype', '=', 'many2one')
+        ], required=True
     )
     children_field = fields.Many2One('ir.model.field', 'Children',
-                        domain=[
-                            ('model', '=', Eval('model'))
-                            ('ttype', '=', 'one2many')
-                        ], required=True
+        domain=[
+            ('model', '=', Eval('model'))
+            ('ttype', '=', 'one2many')
+        ], required=True
     )
     uri_field = fields.Many2One('ir.model.field', 'URI Field',
-                        domain=[
-                            ('model', '=', Eval('model'))
-                            ('ttype', '=', 'char')
-                        ], required=True
+        domain=[
+            ('model', '=', Eval('model'))
+            ('ttype', '=', 'char')
+        ], required=True
     )
     identifier_field = fields.Many2One('ir.model.field', 'Identifier Field',
-                        domain=[
-                            ('model', '=', Eval('model'))
-                            ('ttype', '=', 'char')
-                        ], required=True
+        domain=[
+            ('model', '=', Eval('model'))
+            ('ttype', '=', 'char')
+        ], required=True
     )
 
     def default_active(self, cursor, user, context=None ):
@@ -65,8 +66,11 @@ class CMSMenuitems(ModelSQL, ModelView):
     unique_name= fields.Char('Unique Name', size=100, required=True)
     link= fields.Char('Link', size=255,)
     parent= fields.Many2One('nereid.cms.menuitems', 'Parent Menuitem',)
-    child_id= fields.One2Many('nereid.cms.menuitems', 'parent',
-                               string='Child Menu Items')
+    child_id= fields.One2Many(
+        'nereid.cms.menuitems', 
+        'parent', 
+        string='Child Menu Items'
+    )
     active= fields.Boolean('Active')
     sequence= fields.Integer('Sequence', required=True,)
 
@@ -138,12 +142,16 @@ class CMSArticles(ModelSQL, ModelView):
     _order = 'sequence'
     
     flatpage_id = fields.Many2One(
-                        'nereid.flatpage',
-                        'Flatpage', required=True),
-    active= fields.Boolean('Active',)
+        'nereid.flatpage',
+        'Flatpage', 
+        required=True
+    )
+    active= fields.Boolean('Active')
     category= fields.Many2One(
-                        'nereid.article.category', 'Category',
-                        required=True,)
+        'nereid.article.category', 
+        'Category',
+        required=True,
+    )
     image= fields.Many2One('nereid.static.file', 'Image',)
     author= fields.Many2One('res.users', 'Author',)
     create_date = fields.DateTime('Created Date')
