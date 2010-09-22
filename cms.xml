@@ -147,7 +147,7 @@
             <field name="view" ref="cms_menuitems_view_form" />
             <field name="act_window" ref="act_cms_menuitems_form" />
         </record>
-        <menuitem name="Menus" sequence="20"
+        <menuitem name="Menuitems" sequence="20"
             id="menu_nereid_cms_menuitems" 
             parent="menu_nereid_cms_menus"
             action="act_cms_menuitems_form" 
