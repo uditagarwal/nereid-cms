@@ -176,14 +176,20 @@
                         </group>
                         <notebook colspan="4">
                             <page string="Article Body" id="article_body">
-                                <separator colspan="3" string="Standard Body" />
-                                <separator colspan="1" string="Parameters" />
+                                <separator 
+                                    colspan="3" 
+                                    string="Standard Body" 
+                                    id="sepr_body"/>
+                                <separator 
+                                    colspan="1" 
+                                    string="Parameters" 
+                                    id="sepr_params"/>
                             <notebook>
                                 <page string="Content" id="content">
-                                    <field name="content" colspan="4" nolabel="1" />
+                                    <field name="content" colspan="3" />
                                 </page>
                             </notebook>        
-                                <group col="4">
+                                <group col="4" id="group_params">
                                     <label name="sequence" />
                                     <field name="sequence" />
                                     <newline/>
@@ -227,12 +233,12 @@
             <field name="res_model">nereid.cms.article</field>
             <field name="view_type">form</field>
         </record>
-        <record model="ir.action.act_window.view" id="act_cms_menuitems_form_view1">
+        <record model="ir.action.act_window.view" id="act_cms_articles_form_view1">
             <field name="sequence" eval="20"/>
             <field name="view" ref="cms_article_view_form"/>
             <field name="act_window" ref="action_cms_articles"/>
         </record>
-        <record model="ir.action.act_window.view" id="act_cms_menuitems_form_view2">
+        <record model="ir.action.act_window.view" id="act_cms_articles_form_view2">
             <field name="sequence" eval="10"/>
             <field name="view" ref="cms_article_view_tree"/>
             <field name="act_window" ref="action_cms_articles"/>

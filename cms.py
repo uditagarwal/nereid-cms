@@ -16,7 +16,7 @@ class CMSMenus(ModelSQL, ModelView):
         'Unique Identifier', 
         size=100, required=True,)
     description= fields.Text('Description')
-    site= fields.Many2One('nereid.sites', 'Site')
+    website= fields.Many2One('nereid.website', 'WebSite')
     active= fields.Boolean('Active')
     
     model=fields.Many2One(
@@ -157,8 +157,8 @@ class CMSArticles(ModelSQL, ModelView):
         'Category',
         required=True,
     )
-    image= fields.Many2One('nereid.static.file', 'Image',)
-    author= fields.Many2One('res.users', 'Author',)
+#    image= fields.Many2One('nereid.static.file', 'Image',)
+    author= fields.Many2One('res.user', 'Author',)
     create_date = fields.DateTime('Created Date')
     published_on= fields.DateTime('Published On')
     sequence= fields.Integer('Sequence', required=True,)
