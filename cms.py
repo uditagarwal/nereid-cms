@@ -3,6 +3,7 @@
 "Nereid CMS"
 
 import time
+from nereid.threading import local
 from trytond.pyson import Eval
 from trytond.model import ModelSQL, ModelView, fields
 
@@ -191,8 +192,8 @@ class CMSArticles(ModelSQL, ModelView):
                 article = self.browse(cursor, request.tryton_user.id, 
                                        article_ids[0], 
                                        context = request.tryton_context) 
-            template_name = article.template.name
-            template = local.application.jinja_env.get_template(template_name)
-            return template.render()
+                template_name = article.template.name
+                template = local.application.jinja_env.get_template(template_name)
+                return template.render(article=article)
         
 CMSArticles()
