@@ -162,7 +162,7 @@ class CMSArticles(ModelSQL, ModelView):
     create_date = fields.DateTime('Created Date')
     published_on= fields.DateTime('Published On')
     sequence= fields.Integer('Sequence', required=True,)
-    # TODO: Mets Information
+    # TODO: Meta Information
 
     def default_active(self, cursor, user, context=None ):
         return True
@@ -175,5 +175,24 @@ class CMSArticles(ModelSQL, ModelView):
     
     def default_published_on(self, cursor, user, context=None ):
         return time.strftime("%Y-%m-%d %H:%M:%S")
+    
+    def render(self, cursor, request, arguments=None):
+        """
+        Renders the template
+        """
+        uri = arguments.get('uri', None)
+        if uri:
+            article_ids = self.search(cursor, request.tryton_user.id, 
+                                       [
+                                        ('uri', '=', uri)
+                                        ], 
+                                        context = request.tryton_context)
+            if article_ids:
+                article = self.browse(cursor, request.tryton_user.id, 
+                                       article_ids[0], 
+                                       context = request.tryton_context) 
+            template_name = article.template.name
+            template = local.application.jinja_env.get_template(template_name)
+            return template.render()
         
 CMSArticles()
