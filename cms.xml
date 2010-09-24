@@ -174,36 +174,28 @@
                             <label name="template" />
                             <field name="template" />
                         </group>
-                        <notebook colspan="4">
-                            <page string="Article Body" id="article_body">
-                                <separator 
-                                    colspan="3" 
-                                    string="Standard Body" 
-                                    id="sepr_body"/>
-                                <separator 
-                                    colspan="1" 
-                                    string="Parameters" 
-                                    id="sepr_params"/>
-                            <notebook>
-                                <page string="Content" id="content">
-                                    <field name="content" colspan="3" />
-                                </page>
-                            </notebook>        
-                                <group col="4" id="group_params">
-                                    <label name="sequence" />
-                                    <field name="sequence" />
-                                    <newline/>
-                                    <label name="author" />
-                                    <field name="author" />
-                                    <newline/>
-                                    <label name="create_date" />
-                                    <field name="create_date" />
-                                    <newline/>
-                                    <label name="published_on" />
-                                    <field name="published_on" />
-                                </group>
-                            </page>
-                        </notebook>
+                        <separator 
+                            colspan="3" 
+                            string="Standard Body" 
+                            id="sepr_body"/>
+                        <separator 
+                            colspan="1" 
+                            string="Parameters" 
+                            id="sepr_params"/>
+                        <field name="content" colspan="3" />
+                        <group col="4" id="group_params">
+                            <label name="sequence" />
+                            <field name="sequence" />
+                            <newline/>
+                            <label name="author" />
+                            <field name="author" />
+                            <newline/>
+                            <label name="create_date" />
+                            <field name="create_date" />
+                            <newline/>
+                            <label name="published_on" />
+                            <field name="published_on" />
+                        </group>
                     </form>
                 ]]>
             </field>
