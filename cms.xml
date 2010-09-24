@@ -154,6 +154,42 @@
             groups="nereid_configuration.group_nereid_admin" />
 
         <!-- Articles -->
+        <record model="ir.ui.view" id="cms_article_categ_view_form">
+            <field name="model">nereid.article.category</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <![CDATA[
+                    <form string="CMS Article Category">
+                        <label name="title" />
+                        <field name="title" />
+                        <label name="unique_name" />
+                        <field name="unique_name" />
+                        <label name="active" />
+                        <field name="active" />
+                        <separator 
+                            colspan="4" 
+                            string="Description" 
+                            id="sepr_desc"/>
+                        <field name="description" colspan="4" />
+                    </form>
+                ]]>
+            </field>
+        </record>
+
+         <record model="ir.ui.view" id="cms_article_categ_view_tree">
+            <field name="model">nereid.article.category</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+                <![CDATA[
+                    <tree string="CMS Article Categories">
+                        <field name="title" />
+                        <field name="unique_name" />
+                        <field name="active" />
+                    </tree>
+                ]]>
+            </field>
+        </record>
+
         <record model="ir.ui.view" id="cms_article_view_form">
             <field name="model">nereid.cms.article</field>
             <field name="type">form</field>
@@ -225,18 +261,49 @@
             <field name="res_model">nereid.cms.article</field>
             <field name="view_type">form</field>
         </record>
-        <record model="ir.action.act_window.view" id="act_cms_articles_form_view1">
+        <record model="ir.action.act_window.view" 
+                id="act_cms_articles_form_view1">
             <field name="sequence" eval="20"/>
             <field name="view" ref="cms_article_view_form"/>
             <field name="act_window" ref="action_cms_articles"/>
         </record>
-        <record model="ir.action.act_window.view" id="act_cms_articles_form_view2">
+        <record model="ir.action.act_window.view" 
+                id="act_cms_articles_form_view2">
             <field name="sequence" eval="10"/>
             <field name="view" ref="cms_article_view_tree"/>
             <field name="act_window" ref="action_cms_articles"/>
         </record>
 
         <menuitem action="action_cms_articles" id="menu_cms_articles"
-            name="Articles" parent="nereid_configuration.menu_nereid" />
+            name="Articles" parent="nereid_configuration.menu_nereid"
+            groups="nereid_configuration.group_nereid_admin" />
+
+        <!-- Model Access -->
+        <record model="ir.model.access" id="access_menus_nereid_admin">
+            <field name="model" search="[('model', '=', 'nereid.cms.menus')]"/>
+            <field name="group" ref="group_nereid_admin"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_delete" eval="True"/>
+        </record>
+        <record model="ir.model.access" id="access_menuitems_nereid_admin">
+            <field name="model" 
+                search="[('model', '=', 'nereid.cms.menuitems')]"/>
+            <field name="group" ref="group_nereid_admin"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_delete" eval="True"/>
+        </record>
+        <record model="ir.model.access" id="access_article_nereid_admin">
+            <field name="model" 
+                search="[('model', '=', 'nereid.cms.article')]"/>
+            <field name="group" ref="group_nereid_admin"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_delete" eval="True"/>
+        </record>
     </data>
 </tryton>

@@ -4,6 +4,7 @@
 
 import time
 from nereid.threading import local
+from nereid.helpers import dict_to_domain, slugify
 from trytond.pyson import Eval
 from trytond.model import ModelSQL, ModelView, fields
 
@@ -15,7 +16,9 @@ class CMSMenus(ModelSQL, ModelView):
     name= fields.Char('Name', size=100, required=True)
     unique_identifier = fields.Char(
         'Unique Identifier', 
-        size=100, required=True,)
+        size=100, required=True,
+        on_change_with=['name', 'unique_identifier']
+    )
     description= fields.Text('Description')
     website= fields.Many2One('nereid.website', 'WebSite')
     active= fields.Boolean('Active')
@@ -52,11 +55,20 @@ class CMSMenus(ModelSQL, ModelView):
 
     def default_active(self, cursor, user, context=None ):
         return True
-
-    _sql_constraints = [
-        ('unique_identifier', 'unique(unique_identifier, site)',
-                    'The Unique Identifier of the Menu must be unique.')
-    ]
+    
+    def __init__(self):
+        super(CMSMenus, self).__init__()
+        self._sql_constraints += [
+            ('unique_identifier', 'UNIQUE(unique_identifier, website)',
+                'The Unique Identifier of the Menu must be unique.'),
+        ]
+        
+    def on_change_with_unique_identifier(self, cursor, 
+                                            user, vals, context=None):
+        if vals.get('name'):
+            if not vals.get('unique_identifier'):
+                vals['unique_identifier'] = slugify(vals['name'])
+            return vals['unique_identifier']
 
 CMSMenus()
 
@@ -132,11 +144,13 @@ class ArticleCategory(ModelSQL, ModelView):
     def defaults_active(self, cursor, user, context=None ):
         'Return True' 
         return True
-
-    _sql_constraints = [
-        ('unique_name', 'unique(unique_name)',
-                    'The Unique Name of the Category must be unique.')
-    ]
+    
+    def __init__(self):
+        super(ArticleCategory, self).__init__()
+        self._sql_constraints += [
+            ('unique_name', 'UNIQUE(unique_name)',
+                'The Unique Name of the Category must be unique.'),
+        ]
 
 ArticleCategory()
 
