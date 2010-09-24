@@ -281,7 +281,7 @@
         <!-- Model Access -->
         <record model="ir.model.access" id="access_menus_nereid_admin">
             <field name="model" search="[('model', '=', 'nereid.cms.menus')]"/>
-            <field name="group" ref="group_nereid_admin"/>
+            <field name="group" ref="nereid_configuration.group_nereid_admin"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
             <field name="perm_create" eval="True"/>
@@ -290,7 +290,7 @@
         <record model="ir.model.access" id="access_menuitems_nereid_admin">
             <field name="model" 
                 search="[('model', '=', 'nereid.cms.menuitems')]"/>
-            <field name="group" ref="group_nereid_admin"/>
+            <field name="group" ref="nereid_configuration.group_nereid_admin"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
             <field name="perm_create" eval="True"/>
@@ -299,7 +299,7 @@
         <record model="ir.model.access" id="access_article_nereid_admin">
             <field name="model" 
                 search="[('model', '=', 'nereid.cms.article')]"/>
-            <field name="group" ref="group_nereid_admin"/>
+            <field name="group" ref="nereid_configuration.group_nereid_admin"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
             <field name="perm_create" eval="True"/>
