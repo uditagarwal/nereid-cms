@@ -205,9 +205,11 @@ class CMSArticles(ModelSQL, ModelView):
             if article_ids:
                 article = self.browse(cursor, request.tryton_user.id, 
                                        article_ids[0], 
-                                       context = request.tryton_context) 
+                                       context = request.tryton_context)
                 template_name = article.template.name
                 template = local.application.jinja_env.get_template(template_name)
-                return template.render(article=article)
+                html = template.render(article=article)            
+                return local.application.response_class(html, 
+                                                        mimetype='text/html')
         
 CMSArticles()
