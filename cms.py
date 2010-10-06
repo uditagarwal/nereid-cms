@@ -13,17 +13,17 @@ class CMSMenus(ModelSQL, ModelView):
     _name = 'nereid.cms.menus'
     _description = __doc__
 
-    name= fields.Char('Name', size=100, required=True)
+    name = fields.Char('Name', size=100, required=True)
     unique_identifier = fields.Char(
         'Unique Identifier', 
         size=100, required=True,
         on_change_with=['name', 'unique_identifier']
     )
-    description= fields.Text('Description')
-    website= fields.Many2One('nereid.website', 'WebSite')
-    active= fields.Boolean('Active')
-    
-    model=fields.Many2One(
+    description = fields.Text('Description')
+    website = fields.Many2One('nereid.website', 'WebSite')
+    active = fields.Boolean('Active')
+
+    model = fields.Many2One(
         'ir.model', 
         'Open ERP Model', 
         required=True
@@ -55,16 +55,83 @@ class CMSMenus(ModelSQL, ModelView):
 
     def default_active(self, cursor, user, context=None ):
         return True
-    
+
     def __init__(self):
         super(CMSMenus, self).__init__()
         self._sql_constraints += [
             ('unique_identifier', 'UNIQUE(unique_identifier, website)',
                 'The Unique Identifier of the Menu must be unique.'),
         ]
-        
+
+    def _menu_item_to_dict(self, cursor, user, menu_item, menu):
+        """
+        :param menu_item: BR of the menu item
+        :param menu: BR of the menu set
+        """
+        return {
+                'name' : menu_item.name,
+                'uri' : getattr(menu_item, menu.uri_field),
+            }
+
+    def _generate_menu_tree(self, cursor, user, 
+            menu_item_object, menu_item_id, menu, context):
+        """
+        :param menu_item_object: object from pool
+        :param menu_item_id: ID of the remote item
+        :param menu: Browse Record of the  menu item
+        :param context: Tryton Context
+        """
+        result = {}
+        menu_item = menu_item_obj.browse(
+            cursor, user, menu_item_id, context)
+        result['parent'] = self._menu_item_to_dict(
+            cursor, user, menu_item, menu)
+        children = getattr(menu_item, menu.children_field.name)
+        if children:
+            result['children'] = [
+                self._menu_item_to_dict(cursor, user, child, menu) \
+                    for child in children
+                ]
+        return result
+
+    def menu_for(self, cursor, user, identifier,
+        ident_field_value, context=None):
+        """
+        Returns a dictionary of menu tree
+
+        :param cursor: Database Cursor
+        :param user: ID of the user
+        :param identifier: The unique identifier from which the menu
+                has to be chosen
+        :param ident_field_value: The value of the field that has to be 
+                looked up on model with search on ident_field
+        :param context: Tryton context
+        """
+        # First pick up the menu through identifier
+        menu_id = self.search(cursor, user, [
+            ('unique_identifier', '=', identifier)
+            ], limit=1, context=context)
+        if not menu_id:
+            # TODO: May be raise an error ? Look at some other app
+            # how this is handled
+            return None
+        menu_id = menu_id[0]
+        menu = self.browse(cursor, user, menu_id, context)
+
+        # Get the data from the model
+        menu_item_object = self.pool.get(menu.model.model)
+        menu_item_id = menu_item_object.search(cursor, user, 
+            [(menu.identifier_field.name, '=', ident_field_value)],
+            limit=1, context=context
+            )
+        if not menu_item_id:
+            "Raise error ?"
+            return None
+        return self._generate_menu_tree(cursor, user, 
+            menu_item_object, menu_item_id, menu, context)
+
     def on_change_with_unique_identifier(self, cursor, 
-                                            user, vals, context=None):
+                                        user, vals, context=None):
         if vals.get('name'):
             if not vals.get('unique_identifier'):
                 vals['unique_identifier'] = slugify(vals['name'])
