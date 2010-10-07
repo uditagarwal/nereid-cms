@@ -177,8 +177,8 @@ class CMSMenuitems(ModelSQL, ModelView):
         """
         level = 100
         while len(ids):
-            cursor.execute('select distinct parent from cms_menuitems where \
-                                        id in (' + ','.join(
+            cursor.execute('select distinct parent from nereid_cms_menuitems \
+                                        where id in (' + ','.join(
                                                         map(str, ids)
                                                         ) + ')')
             ids = filter(None, map(lambda x:x[0], cursor.fetchall()))
