@@ -148,7 +148,10 @@ class CMSMenuitems(ModelSQL, ModelView):
     _order = 'sequence'
     
     title= fields.Char('Title', size=100, required=True,)
-    unique_name= fields.Char('Unique Name', size=100, required=True)
+    unique_name= fields.Char(
+        'Unique Name', 
+        size=100, required=True, 
+        on_change_with=['title', 'unique_name'])
     link= fields.Char('Link', size=255,)
     parent= fields.Many2One('nereid.cms.menuitems', 'Parent Menuitem',)
     child_id= fields.One2Many(
@@ -193,6 +196,13 @@ class CMSMenuitems(ModelSQL, ModelView):
             'wrong_recursion': 
             'Error ! You can not create recursive menuitems.',
         })
+    
+    def on_change_with_unique_name(self, cursor, 
+                                        user, vals, context=None):
+        if vals.get('title'):
+            if not vals.get('unique_name'):
+                vals['unique_name'] = slugify(vals['title'])
+            return vals['unique_name']
 
 CMSMenuitems()
 

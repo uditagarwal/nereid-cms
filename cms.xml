@@ -100,8 +100,6 @@
                     <label name="sequence"/>
                     <field name="sequence"/>
                     <newline />
-                    <separator colspan="4" string="Child Menu Items" 
-                        id="sepr_child_menus"/>
                     <field name="child_id" colspan="4"/>
                 </form>
             ]]>
