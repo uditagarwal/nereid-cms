@@ -87,31 +87,22 @@
             <field name="arch" type="xml">
             <![CDATA[
                 <form string="CMS Menuitems">
-                    <label name="name"/>
-                    <field name="name"/>
-                    <label name="unique_identifier"/>
-                    <field name="unique_identifier"/>
-                    <label name="website"/>
-                    <field name="website"/>
-                    <label name="model"/>
-                    <field name="model"/>
+                    <label name="title"/>
+                    <field name="title"/>
+                    <label name="unique_name"/>
+                    <field name="unique_name"/>
+                    <label name="link"/>
+                    <field name="link"/>
+                    <label name="parent"/>
+                    <field name="parent"/>
                     <label name="active"/>
                     <field name="active"/>
-                    <notebook colspan="4">
-                        <page string="Fields" id="fields">
-                            <label name="parent_field"/>
-                            <field name="parent_field"/>
-                            <label name="children_field"/>
-                            <field name="children_field"/>
-                            <label name="uri_field"/>
-                            <field name="uri_field"/>
-                            <label name="identifier_field"/>
-                            <field name="identifier_field"/>
-                        </page>
-                        <page string="Description" id="description">
-                            <field name="description" colspan="4"/>
-                        </page>
-                    </notebook>
+                    <label name="sequence"/>
+                    <field name="sequence"/>
+                    <newline />
+                    <separator colspan="4" string="Child Menu Items" 
+                        id="sepr_child_menus"/>
+                    <field name="child_id" colspan="4"/>
                 </form>
             ]]>
             </field>
@@ -122,9 +113,9 @@
             <field name="arch" type="xml">
             <![CDATA[
                 <tree string="CMS Menuitems">
-                    <field name="name"/>
-                    <field name="unique_identifier"/>
-                    <field name="model"/>
+                    <field name="title"/>
+                    <field name="unique_name"/>
+                    <field name="link"/>
                     <field name="active"/>
                 </tree>
             ]]>
