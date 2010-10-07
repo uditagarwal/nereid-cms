@@ -17,8 +17,8 @@
 				    <field name="name"/>
 				    <label name="unique_identifier"/>
 				    <field name="unique_identifier"/>
-                    <label name="site"/>
-                    <field name="site"/>
+                    <label name="website"/>
+                    <field name="website"/>
                     <label name="model"/>
                     <field name="model"/>
                     <label name="active"/>
@@ -91,8 +91,8 @@
                     <field name="name"/>
                     <label name="unique_identifier"/>
                     <field name="unique_identifier"/>
-                    <label name="site"/>
-                    <field name="site"/>
+                    <label name="website"/>
+                    <field name="website"/>
                     <label name="model"/>
                     <field name="model"/>
                     <label name="active"/>
