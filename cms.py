@@ -3,6 +3,7 @@
 "Nereid CMS"
 
 import time
+from nereid.templating import render_template
 from nereid.threading import local
 from nereid.helpers import slugify
 from trytond.pyson import Eval
@@ -171,7 +172,10 @@ class CMSMenuitems(ModelSQL, ModelView):
     _order = 'sequence'
     
     title= fields.Char('Title', size=100, required=True,)
-    unique_name= fields.Char('Unique Name', size=100, required=True)
+    unique_name= fields.Char(
+        'Unique Name', 
+        size=100, required=True, 
+        on_change_with=['title', 'unique_name'])
     link= fields.Char('Link', size=255,)
     parent= fields.Many2One('nereid.cms.menuitems', 'Parent Menuitem',)
     child_id= fields.One2Many(
@@ -197,8 +201,8 @@ class CMSMenuitems(ModelSQL, ModelView):
         """
         level = 100
         while len(ids):
-            cursor.execute('select distinct parent from cms_menuitems where \
-                                        id in (' + ','.join(
+            cursor.execute('select distinct parent from nereid_cms_menuitems \
+                                        where id in (' + ','.join(
                                                         map(str, ids)
                                                         ) + ')')
             ids = filter(None, map(lambda x:x[0], cursor.fetchall()))
@@ -216,6 +220,13 @@ class CMSMenuitems(ModelSQL, ModelView):
             'wrong_recursion': 
             'Error ! You can not create recursive menuitems.',
         })
+    
+    def on_change_with_unique_name(self, cursor, 
+                                        user, vals, context=None):
+        if vals.get('title'):
+            if not vals.get('unique_name'):
+                vals['unique_name'] = slugify(vals['title'])
+            return vals['unique_name']
 
 CMSMenuitems()
 
@@ -297,9 +308,7 @@ class CMSArticles(ModelSQL, ModelView):
                                        article_ids[0], 
                                        context = request.tryton_context)
                 template_name = article.template.name
-                template = local.application.jinja_env.get_template(
-                    template_name)
-                html = template.render(article=article)            
+                html = render_template(template_name, article=article)            
                 return local.application.response_class(html, 
                                                         mimetype='text/html')
         
