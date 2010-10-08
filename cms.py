@@ -4,7 +4,7 @@
 
 import time
 from nereid.threading import local
-from nereid.helpers import dict_to_domain, slugify
+from nereid.helpers import slugify
 from trytond.pyson import Eval
 from trytond.model import ModelSQL, ModelView, fields
 
@@ -53,7 +53,10 @@ class CMSMenus(ModelSQL, ModelView):
         ], required=True
     )
 
-    def default_active(self, cursor, user, context=None ):
+    def default_active(self, cursor, user, context=None):
+        """
+        By Default the Menu is active
+        """
         return True
 
     def __init__(self):
@@ -82,7 +85,7 @@ class CMSMenus(ModelSQL, ModelView):
         :param context: Tryton Context
         """
         result = {}
-        menu_item = menu_item_obj.browse(
+        menu_item = menu_item_object.browse(
             cursor, user, menu_item_id, context)
         result['parent'] = self._menu_item_to_dict(
             cursor, user, menu_item, menu)
@@ -94,7 +97,7 @@ class CMSMenus(ModelSQL, ModelView):
                 ]
         return result
 
-    def menu_for(self, cursor, user, identifier,
+    def _menu_for(self, cursor, user, identifier,
         ident_field_value, context=None):
         """
         Returns a dictionary of menu tree
@@ -125,10 +128,30 @@ class CMSMenus(ModelSQL, ModelView):
             limit=1, context=context
             )
         if not menu_item_id:
-            "Raise error ?"
+            # Raise error ?
             return None
         return self._generate_menu_tree(cursor, user, 
             menu_item_object, menu_item_id, menu, context)
+
+    def menu_for(self, *args):
+        """
+        Template context processor method
+
+        This method could be used to fetch a specific menu for like
+        a wrapper from the templates
+
+        From the templates the usage would be:
+
+        `menu_for('category_menu', 'all_products')`
+        """
+        def wrapper(identifier, ident_field_value):
+            return self._menu_for(
+                local.transaction.cursor,
+                request.tryton_user,
+                identifier, ident_field_value,
+                request.tryton_context
+            )
+        return wrapper
 
     def on_change_with_unique_identifier(self, cursor, 
                                         user, vals, context=None):
@@ -233,16 +256,16 @@ class CMSArticles(ModelSQL, ModelView):
         'Flatpage', 
         required=True
     )
-    active= fields.Boolean('Active')
-    category= fields.Many2One(
+    active = fields.Boolean('Active')
+    category = fields.Many2One(
         'nereid.article.category', 
         'Category',
         required=True,
     )
 #    image= fields.Many2One('nereid.static.file', 'Image',)
-    author= fields.Many2One('res.user', 'Author',)
+    author = fields.Many2One('res.user', 'Author',)
     create_date = fields.DateTime('Created Date')
-    published_on= fields.DateTime('Published On')
+    published_on = fields.DateTime('Published On')
     sequence= fields.Integer('Sequence', required=True,)
     # TODO: Meta Information
 
@@ -274,7 +297,8 @@ class CMSArticles(ModelSQL, ModelView):
                                        article_ids[0], 
                                        context = request.tryton_context)
                 template_name = article.template.name
-                template = local.application.jinja_env.get_template(template_name)
+                template = local.application.jinja_env.get_template(
+                    template_name)
                 html = template.render(article=article)            
                 return local.application.response_class(html, 
                                                         mimetype='text/html')
