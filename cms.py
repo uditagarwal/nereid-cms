@@ -3,6 +3,7 @@
 "Nereid CMS"
 
 import time
+from nereid.templating import render_template
 from nereid.threading import local
 from nereid.helpers import dict_to_domain, slugify
 from trytond.pyson import Eval
@@ -284,8 +285,7 @@ class CMSArticles(ModelSQL, ModelView):
                                        article_ids[0], 
                                        context = request.tryton_context)
                 template_name = article.template.name
-                template = local.application.jinja_env.get_template(template_name)
-                html = template.render(article=article)            
+                html = render_template(template_name, article=article)            
                 return local.application.response_class(html, 
                                                         mimetype='text/html')
         
