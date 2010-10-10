@@ -134,7 +134,7 @@ class CMSMenus(ModelSQL, ModelView):
         return self._generate_menu_tree(cursor, user, 
             menu_item_object, menu_item_id, menu, context)
 
-    def menu_for(self, *args):
+    def menu_for(self, request):
         """
         Template context processor method
 
