@@ -152,7 +152,7 @@ class CMSMenus(ModelSQL, ModelView):
                 identifier, ident_field_value,
                 request.tryton_context
             )
-        return wrapper
+        return {'menu_for': wrapper}
 
     def on_change_with_unique_identifier(self, cursor, 
                                         user, vals, context=None):
