@@ -26,7 +26,7 @@ class CMSMenus(ModelSQL, ModelView):
 
     model = fields.Many2One(
         'ir.model', 
-        'Open ERP Model', 
+        'Tryton Model', 
         required=True
     )
     parent_field = fields.Many2One('ir.model.field', 'Parent',
