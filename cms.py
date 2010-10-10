@@ -148,7 +148,7 @@ class CMSMenus(ModelSQL, ModelView):
         def wrapper(identifier, ident_field_value):
             return self._menu_for(
                 local.transaction.cursor,
-                request.tryton_user,
+                request.tryton_user.id,
                 identifier, ident_field_value,
                 request.tryton_context
             )
