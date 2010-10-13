@@ -3,11 +3,14 @@
 "Nereid CMS"
 
 import time
+
 from nereid.templating import render_template
 from nereid.threading import local
 from nereid.helpers import slugify
+from nereid.exceptions import NotFound
 from trytond.pyson import Eval
 from trytond.model import ModelSQL, ModelView, fields
+
 
 class CMSMenus(ModelSQL, ModelView):
     "Nereid CMS Menus"
@@ -23,7 +26,6 @@ class CMSMenus(ModelSQL, ModelView):
     description = fields.Text('Description')
     website = fields.Many2One('nereid.website', 'WebSite')
     active = fields.Boolean('Active')
-
     model = fields.Many2One(
         'ir.model', 
         'Tryton Model', 
@@ -75,7 +77,7 @@ class CMSMenus(ModelSQL, ModelView):
         return {
                 'name' : menu_item.name,
                 'uri' : getattr(menu_item, menu.uri_field),
-            }
+        }
 
     def _generate_menu_tree(self, cursor, user, 
             menu_item_object, menu_item_id, menu, context):
@@ -146,6 +148,12 @@ class CMSMenus(ModelSQL, ModelView):
         `menu_for('category_menu', 'all_products')`
         """
         def wrapper(identifier, ident_field_value):
+            """
+            Wraooer function which allows the template designer
+            to call menu_for('arg_1', 'arg_2') from the template
+            without going through the hassle of specifying cursor
+            user etc
+            """
             return self._menu_for(
                 local.transaction.cursor,
                 request.tryton_user.id,
@@ -170,21 +178,21 @@ class CMSMenuitems(ModelSQL, ModelView):
     _description = __doc__
     _rec_name = 'unique_name'
     _order = 'sequence'
-    
-    title= fields.Char('Title', size=100, required=True,)
-    unique_name= fields.Char(
+
+    title = fields.Char('Title', size=100, required=True,)
+    unique_name = fields.Char(
         'Unique Name', 
         size=100, required=True, 
         on_change_with=['title', 'unique_name'])
-    link= fields.Char('Link', size=255,)
-    parent= fields.Many2One('nereid.cms.menuitems', 'Parent Menuitem',)
-    child_id= fields.One2Many(
+    link = fields.Char('Link', size=255,)
+    parent = fields.Many2One('nereid.cms.menuitems', 'Parent Menuitem',)
+    child_id = fields.One2Many(
         'nereid.cms.menuitems', 
         'parent', 
         string='Child Menu Items'
     )
-    active= fields.Boolean('Active')
-    sequence= fields.Integer('Sequence', required=True,)
+    active = fields.Boolean('Active')
+    sequence = fields.Integer('Sequence', required=True,)
 
     def default_active(self, cursor, user, context=None ):
         return True
@@ -239,8 +247,8 @@ class ArticleCategory(ModelSQL, ModelView):
 
     title = fields.Char('Title', size=100, required=True,)
     unique_name = fields.Char('Unique Name', size=100, required=True,)
-    active= fields.Boolean('Active',)
-    description= fields.Text('Description',)
+    active = fields.Boolean('Active',)
+    description = fields.Text('Description',)
 
     def defaults_active(self, cursor, user, context=None ):
         'Return True' 
@@ -277,7 +285,7 @@ class CMSArticles(ModelSQL, ModelView):
     author = fields.Many2One('res.user', 'Author',)
     create_date = fields.DateTime('Created Date')
     published_on = fields.DateTime('Published On')
-    sequence= fields.Integer('Sequence', required=True,)
+    sequence = fields.Integer('Sequence', required=True,)
     # TODO: Meta Information
 
     def default_active(self, cursor, user, context=None ):
@@ -297,19 +305,22 @@ class CMSArticles(ModelSQL, ModelView):
         Renders the template
         """
         uri = arguments.get('uri', None)
-        if uri:
-            article_ids = self.search(cursor, request.tryton_user.id, 
-                                       [
-                                        ('uri', '=', uri)
-                                        ], 
-                                        context = request.tryton_context)
-            if article_ids:
-                article = self.browse(cursor, request.tryton_user.id, 
-                                       article_ids[0], 
-                                       context = request.tryton_context)
-                template_name = article.template.name
-                html = render_template(template_name, article=article)            
-                return local.application.response_class(html, 
-                                                        mimetype='text/html')
+        article_ids = self.search(
+            cursor, request.tryton_user.id, 
+            [
+             ('uri', '=', uri)
+            ], 
+            context = request.tryton_context
+            )
+        if not article_ids:
+            return NotFound(uri)
+        article = self.browse(
+            cursor, request.tryton_user.id, 
+            article_ids[0], context = request.tryton_context
+            )
+        template_name = article.template.name
+        html = render_template(template_name, article=article)            
+        return local.application.response_class(
+            html, mimetype='text/html')
         
 CMSArticles()
