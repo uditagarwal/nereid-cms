@@ -73,7 +73,7 @@ class CMSMenus(ModelSQL, ModelView):
         :param menu: BR of the menu set
         """
         return {
-                'name' : menu_item.name,
+                'name' : getattr(menu_item, menu.identifier_field),
                 'uri' : getattr(menu_item, menu.uri_field),
             }
 
