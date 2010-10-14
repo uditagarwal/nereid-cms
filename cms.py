@@ -17,7 +17,7 @@ class CMSMenus(ModelSQL, ModelView):
     name = fields.Char('Name', size=100, required=True)
     unique_identifier = fields.Char(
         'Unique Identifier', 
-        size=100, required=True,
+        required=True,
         on_change_with=['name', 'unique_identifier']
     )
     description = fields.Text('Description')
@@ -238,11 +238,15 @@ class ArticleCategory(ModelSQL, ModelView):
     _rec_name = 'unique_name'
 
     title = fields.Char('Title', size=100, required=True,)
-    unique_name = fields.Char('Unique Name', size=100, required=True,)
+    unique_name = fields.Char(
+        'Unique Name', 
+        required=True,
+        on_change_with=['title', 'unique_name'],
+    )
     active= fields.Boolean('Active',)
     description= fields.Text('Description',)
 
-    def defaults_active(self, cursor, user, context=None ):
+    def default_active(self, cursor, user, context=None ):
         'Return True' 
         return True
     
@@ -252,6 +256,13 @@ class ArticleCategory(ModelSQL, ModelView):
             ('unique_name', 'UNIQUE(unique_name)',
                 'The Unique Name of the Category must be unique.'),
         ]
+    
+    def on_change_with_unique_name(self, cursor, 
+                                        user, vals, context=None):
+        if vals.get('title'):
+            if not vals.get('unique_name'):
+                vals['unique_name'] = slugify(vals['title'])
+            return vals['unique_name']
 
 ArticleCategory()
 
