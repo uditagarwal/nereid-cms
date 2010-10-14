@@ -73,8 +73,8 @@ class CMSMenus(ModelSQL, ModelView):
         :param menu: BR of the menu set
         """
         return {
-                'name' : getattr(menu_item, menu.identifier_field),
-                'uri' : getattr(menu_item, menu.uri_field),
+                'name' : getattr(menu_item, menu.identifier_field.name),
+                'uri' : getattr(menu_item, menu.uri_field.name),
             }
 
     def _generate_menu_tree(self, cursor, user, 
