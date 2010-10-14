@@ -132,7 +132,7 @@ class CMSMenus(ModelSQL, ModelView):
             # Raise error ?
             return None
         return self._generate_menu_tree(cursor, user, 
-            menu_item_object, menu_item_id, menu, context)
+            menu_item_object, menu_item_id[0], menu, context)
 
     def menu_for(self, request):
         """
