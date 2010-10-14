@@ -174,7 +174,7 @@ class CMSMenuitems(ModelSQL, ModelView):
     title= fields.Char('Title', size=100, required=True,)
     unique_name= fields.Char(
         'Unique Name', 
-        size=100, required=True, 
+        required=True, 
         on_change_with=['title', 'unique_name'])
     link= fields.Char('Link', size=255,)
     parent= fields.Many2One('nereid.cms.menuitems', 'Parent Menuitem',)
