@@ -198,6 +198,8 @@
                             <newline />
                             <label name="template" />
                             <field name="template" />
+                            <label name="image"/>
+                            <field name="image"/>
                         </group>
                         <separator 
                             colspan="3" 

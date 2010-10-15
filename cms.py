@@ -284,7 +284,7 @@ class CMSArticles(ModelSQL, ModelView):
         'Category',
         required=True,
     )
-#    image= fields.Many2One('nereid.static.file', 'Image',)
+    image = fields.Many2One('nereid.static.file', 'Image')
     author = fields.Many2One('res.user', 'Author',)
     create_date = fields.DateTime('Created Date')
     published_on = fields.DateTime('Published On')
