@@ -174,22 +174,22 @@ class CMSMenuitems(ModelSQL, ModelView):
     _name = 'nereid.cms.menuitems'
     _description = __doc__
     _rec_name = 'unique_name'
-    _order = 'sequence'
+    _order = ('sequence', 'ASC')
     
-    title= fields.Char('Title', size=100, required=True,)
-    unique_name= fields.Char(
+    title = fields.Char('Title', size=100, required=True,)
+    unique_name = fields.Char(
         'Unique Name', 
         required=True, 
         on_change_with=['title', 'unique_name'])
-    link= fields.Char('Link', size=255,)
-    parent= fields.Many2One('nereid.cms.menuitems', 'Parent Menuitem',)
-    child_id= fields.One2Many(
+    link = fields.Char('Link', size=255,)
+    parent = fields.Many2One('nereid.cms.menuitems', 'Parent Menuitem',)
+    child_id = fields.One2Many(
         'nereid.cms.menuitems', 
         'parent', 
         string='Child Menu Items'
     )
-    active= fields.Boolean('Active')
-    sequence= fields.Integer('Sequence', required=True,)
+    active = fields.Boolean('Active')
+    sequence = fields.Integer('Sequence', required=True,)
 
     def default_active(self, cursor, user, context=None ):
         return True
