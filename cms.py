@@ -2,10 +2,10 @@
 #of this repository contains the full copyright notices and license terms.
 "Nereid CMS"
 
-import time
 from nereid.templating import render_template
 from nereid.threading import local
 from nereid.helpers import slugify
+from nereid.exceptions import NotFound
 from trytond.pyson import Eval
 from trytond.model import ModelSQL, ModelView, fields
 
@@ -14,14 +14,15 @@ class CMSMenus(ModelSQL, ModelView):
     _name = 'nereid.cms.menus'
     _description = __doc__
 
-    name = fields.Char('Name', size=100, required=True)
+    name = fields.Char('Name', size=100, required=True, select=1)
     unique_identifier = fields.Char(
         'Unique Identifier', 
         required=True,
-        on_change_with=['name', 'unique_identifier']
+        on_change_with=['name', 'unique_identifier'],
+        select=1
     )
     description = fields.Text('Description')
-    website = fields.Many2One('nereid.website', 'WebSite')
+    website = fields.Many2One('nereid.website', 'WebSite', select=2)
     active = fields.Boolean('Active')
 
     model = fields.Many2One(
@@ -176,11 +177,16 @@ class CMSMenuitems(ModelSQL, ModelView):
     _description = __doc__
     _rec_name = 'unique_name'
     
-    title = fields.Char('Title', size=100, required=True,)
+    title = fields.Char(
+        'Title', size=100, 
+        required=True, select=1
+        )
     unique_name = fields.Char(
         'Unique Name', 
         required=True, 
-        on_change_with=['title', 'unique_name'])
+        on_change_with=['title', 'unique_name'],
+        select=1,
+        )
     link = fields.Char('Link', size=255,)
     parent = fields.Many2One('nereid.cms.menuitems', 'Parent Menuitem',)
     child_id = fields.One2Many(
@@ -249,8 +255,10 @@ class ArticleCategory(ModelSQL, ModelView):
         required=True,
         on_change_with=['title', 'unique_name'],
     )
-    active= fields.Boolean('Active',)
-    description= fields.Text('Description',)
+    active = fields.Boolean('Active',)
+    description = fields.Text('Description',)
+    template = fields.Many2One('nereid.template', 'Template', required=True)
+    articles = fields.One2Many('nereid.cms.article', 'category', 'Articles')
 
     def default_active(self, cursor, user, context=None ):
         'Return True' 
@@ -270,6 +278,29 @@ class ArticleCategory(ModelSQL, ModelView):
                 vals['unique_name'] = slugify(vals['title'])
             return vals['unique_name']
 
+    def render(self, cursor, request, arguments=None):
+        """
+        Renders the category
+        """
+        uri = arguments.get('uri', None)
+        user = request.tryton_user.id
+        if not uri:
+            return NotFound()
+        category_ids = self.search(
+            cursor, user, 
+            [('uri', '=', uri)], context = request.tryton_context
+            )
+        if not category_ids:
+            return NotFound()
+        category = self.browse(
+            cursor, user, category_ids[0], request.tryton_context
+            )
+        template_name = article.template.name
+        html = render_template(template_name, category=category)
+        return local.application.response_class(
+            html, mimetype='text/html'
+            )
+
 ArticleCategory()
 
 
@@ -277,7 +308,6 @@ class CMSArticles(ModelSQL, ModelView):
     "CMS Articles"
     _name = 'nereid.cms.article'
     _inherits = {'nereid.flatpage': 'flatpage_id'}
-    _order = 'sequence'
     
     flatpage_id = fields.Many2One(
         'nereid.flatpage',
@@ -295,17 +325,16 @@ class CMSArticles(ModelSQL, ModelView):
     create_date = fields.DateTime('Created Date')
     published_on = fields.DateTime('Published On')
     sequence= fields.Integer('Sequence', required=True,)
-    # TODO: Meta Information
+
+    def __init__(self):
+        super(CMSArticles, self).__init__()
+        self._order.insert(0, ('sequence', 'ASC'))
 
     def default_active(self, cursor, user, context=None ):
         return True
     
     def default_author(self, cursor, user, context=None ):
         return user
-    
-    def default_create_date(self, cursor, user, context=None ):
-        date_obj = self.pool.get('ir.date')
-        return date_obj.today(cursor, user, context=context) 
     
     def default_published_on(self, cursor, user, context=None ):
         date_obj = self.pool.get('ir.date')
@@ -316,18 +345,20 @@ class CMSArticles(ModelSQL, ModelView):
         Renders the template
         """
         uri = arguments.get('uri', None)
-        if uri:
-            article_ids = self.search(
-                cursor, request.tryton_user.id, 
-                [('uri', '=', uri)], context = request.tryton_context
-                )
-            if article_ids:
-                article = self.browse(cursor, request.tryton_user.id, 
-                                       article_ids[0], 
-                                       context = request.tryton_context)
-                template_name = article.template.name
-                html = render_template(template_name, article=article)
-                return local.application.response_class(html, 
-                                                        mimetype='text/html')
+        if not uri:
+            return NotFound()
+        article_ids = self.search(
+            cursor, request.tryton_user.id, 
+            [('uri', '=', uri)], context = request.tryton_context
+            )
+        if not article_ids:
+            return NotFound()
+        article = self.browse(cursor, request.tryton_user.id, 
+                               article_ids[0], 
+                               context = request.tryton_context)
+        template_name = article.template.name
+        html = render_template(template_name, article=article)
+        return local.application.response_class(html, 
+                                                mimetype='text/html')
         
 CMSArticles()
