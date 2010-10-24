@@ -8,7 +8,7 @@
     <data>
         <!-- Menus -->
         <record model="ir.ui.view" id="cms_menus_view_form">
-            <field name="model">nereid.cms.menus</field>
+            <field name="model">nereid.cms.menu</field>
             <field name="type">form</field>
             <field name="arch" type="xml">
 			<![CDATA[
@@ -43,7 +43,7 @@
             </field>
         </record>
         <record model="ir.ui.view" id="cms_menus_view_tree">
-            <field name="model">nereid.cms.menus</field>
+            <field name="model">nereid.cms.menu</field>
             <field name="type">tree</field>
             <field name="arch" type="xml">
 			<![CDATA[
@@ -58,7 +58,7 @@
         </record>
         <record model="ir.action.act_window" id="act_cms_menus_form">
             <field name="name">CMS Menus</field>
-            <field name="res_model">nereid.cms.menus</field>
+            <field name="res_model">nereid.cms.menu</field>
             <field name="view_type">form</field>
         </record>
         <record model="ir.action.act_window.view" id="act_cms_menus_form_view1">
@@ -82,7 +82,7 @@
 
         <!-- Menuitems -->
         <record model="ir.ui.view" id="cms_menuitems_view_form">
-            <field name="model">nereid.cms.menuitems</field>
+            <field name="model">nereid.cms.menuitem</field>
             <field name="type">form</field>
             <field name="arch" type="xml">
             <![CDATA[
@@ -106,7 +106,7 @@
             </field>
         </record>
         <record model="ir.ui.view" id="cms_menuitems_view_tree">
-            <field name="model">nereid.cms.menuitems</field>
+            <field name="model">nereid.cms.menuitem</field>
             <field name="type">tree</field>
             <field name="arch" type="xml">
             <![CDATA[
@@ -121,7 +121,7 @@
         </record>
         <record model="ir.action.act_window" id="act_cms_menuitems_form">
             <field name="name">CMS Menuitems</field>
-            <field name="res_model">nereid.cms.menuitems</field>
+            <field name="res_model">nereid.cms.menuitem</field>
             <field name="view_type">form</field>
         </record>
         <record model="ir.action.act_window.view" 
