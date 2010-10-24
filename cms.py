@@ -67,7 +67,7 @@ class CMSMenus(ModelSQL, ModelView):
                 'The Unique Identifier of the Menu must be unique.'),
         ]
 
-    def _menu_item_to_dict(self, cursor, user, menu_item, menu):
+    def _menu_item_to_dict(self, cursor, user, menu, menu_item):
         """
         :param menu_item: BR of the menu item
         :param menu: BR of the menu set
@@ -84,19 +84,21 @@ class CMSMenus(ModelSQL, ModelView):
         :param menu_item: BrowseRecord of the root menu_item
         :param context: Tryton Context
         """
-        result = {}
+        result = {'children' : [ ]}
         result.update(
             self._menu_item_to_dict(
-                cursor, user, menu_item, menu
+                cursor, user, menu, menu_item
                 )
             )
+        # If children exist iteratively call _generate_..
         children = getattr(menu_item, menu.children_field.name)
         if children:
-            result['children'] = [
-                self._generate_menu_tree(
-                    cursor, user, menu, child, context) \
-                    for child in children
-                ]
+            for child in children:
+                result['children'].append(
+                    self._generate_menu_tree(
+                        cursor, user, menu, child, context
+                    )
+                )
         return result
 
     def _menu_for(self, cursor, user, identifier,
@@ -120,8 +122,7 @@ class CMSMenus(ModelSQL, ModelView):
             # TODO: May be raise an error ? Look at some other app
             # how this is handled
             return None
-        menu_id = menu_id[0]
-        menu = self.browse(cursor, user, menu_id, context)
+        menu = self.browse(cursor, user, menu_id[0], context)
 
         # Get the data from the model
         menu_item_object = self.pool.get(menu.model.model)
@@ -314,17 +315,16 @@ class CMSArticles(ModelSQL, ModelView):
         """
         uri = arguments.get('uri', None)
         if uri:
-            article_ids = self.search(cursor, request.tryton_user.id, 
-                                       [
-                                        ('uri', '=', uri)
-                                        ], 
-                                        context = request.tryton_context)
+            article_ids = self.search(
+                cursor, request.tryton_user.id, 
+                [('uri', '=', uri)], context = request.tryton_context
+                )
             if article_ids:
                 article = self.browse(cursor, request.tryton_user.id, 
                                        article_ids[0], 
                                        context = request.tryton_context)
                 template_name = article.template.name
-                html = render_template(template_name, article=article)            
+                html = render_template(template_name, article=article)
                 return local.application.response_class(html, 
                                                         mimetype='text/html')
         
