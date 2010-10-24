@@ -251,8 +251,10 @@ class ArticleCategory(ModelSQL, ModelView):
         required=True,
         on_change_with=['title', 'unique_name'],
     )
-    active= fields.Boolean('Active',)
-    description= fields.Text('Description',)
+    active = fields.Boolean('Active',)
+    description = fields.Text('Description',)
+    template = fields.Many2One('nereid.template', 'Template', required=True)
+    articles = fields.One2Many('nereid.cms.article', 'category', 'Articles')
 
     def default_active(self, cursor, user, context=None ):
         'Return True' 
@@ -271,6 +273,29 @@ class ArticleCategory(ModelSQL, ModelView):
             if not vals.get('unique_name'):
                 vals['unique_name'] = slugify(vals['title'])
             return vals['unique_name']
+
+    def render(self, cursor, request, arguments=None):
+        """
+        Renders the category
+        """
+        uri = arguments.get('uri', None)
+        user = request.tryton_user.id
+        if not uri:
+            return NotFound()
+        category_ids = self.search(
+            cursor, user, 
+            [('uri', '=', uri)], context = request.tryton_context
+            )
+        if not category_ids:
+            return NotFound()
+        category = self.browse(
+            cursor, user, category_ids[0], request.tryton_context
+            )
+        template_name = article.template.name
+        html = render_template(template_name, category=category)
+        return local.application.response_class(
+            html, mimetype='text/html'
+            )
 
 ArticleCategory()
 

@@ -155,6 +155,8 @@
                         <field name="unique_name" />
                         <label name="active" />
                         <field name="active" />
+                        <label name="template" />
+                        <field name="template" />
                         <separator 
                             colspan="4" 
                             string="Description" 
