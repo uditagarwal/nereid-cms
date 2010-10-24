@@ -69,7 +69,7 @@ class Menu(ModelSQL, ModelView):
                 'The Unique Identifier of the Menu must be unique.'),
         ]
 
-    def _menu_item_to_dict(self, cursor, user, menu_item, menu):
+    def _menu_item_to_dict(self, cursor, user, menu, menu_item):
         """
         :param menu_item: BR of the menu item
         :param menu: BR of the menu set
@@ -80,24 +80,27 @@ class Menu(ModelSQL, ModelView):
             }
 
     def _generate_menu_tree(self, cursor, user, 
-            menu_item_object, menu_item_id, menu, context):
+            menu, menu_item, context):
         """
-        :param menu_item_object: object from pool
-        :param menu_item_id: ID of the remote item
-        :param menu: Browse Record of the  menu item
+        :param menu: BrowseRecord of the Menu
+        :param menu_item: BrowseRecord of the root menu_item
         :param context: Tryton Context
         """
-        result = {}
-        menu_item = menu_item_object.browse(
-            cursor, user, menu_item_id, context)
-        result['parent'] = self._menu_item_to_dict(
-            cursor, user, menu_item, menu)
+        result = {'children' : [ ]}
+        result.update(
+            self._menu_item_to_dict(
+                cursor, user, menu, menu_item
+                )
+            )
+        # If children exist iteratively call _generate_..
         children = getattr(menu_item, menu.children_field.name)
         if children:
-            result['children'] = [
-                self._menu_item_to_dict(cursor, user, child, menu) \
-                    for child in children
-                ]
+            for child in children:
+                result['children'].append(
+                    self._generate_menu_tree(
+                        cursor, user, menu, child, context
+                    )
+                )
         return result
 
     def _menu_for(self, cursor, user, identifier,
@@ -121,8 +124,7 @@ class Menu(ModelSQL, ModelView):
             # TODO: May be raise an error ? Look at some other app
             # how this is handled
             return None
-        menu_id = menu_id[0]
-        menu = self.browse(cursor, user, menu_id, context)
+        menu = self.browse(cursor, user, menu_id[0], context)
 
         # Get the data from the model
         menu_item_object = self.pool.get(menu.model.model)
@@ -133,8 +135,12 @@ class Menu(ModelSQL, ModelView):
         if not menu_item_id:
             # Raise error ?
             return None
-        return self._generate_menu_tree(cursor, user, 
-            menu_item_object, menu_item_id[0], menu, context)
+        root_menu_item = menu_item_object.browse(
+            cursor, user, menu_item_id[0], context
+            )
+        return self._generate_menu_tree(
+            cursor, user, menu, root_menu_item, context
+            )
 
     def menu_for(self, request):
         """
@@ -299,10 +305,12 @@ class Article(ModelSQL, ModelView):
         return user
     
     def default_create_date(self, cursor, user, context=None ):
-        return time.strftime("%Y-%m-%d %H:%M:%S")
+        date_obj = self.pool.get('ir.date')
+        return date_obj.today(cursor, user, context=context) 
     
     def default_published_on(self, cursor, user, context=None ):
-        return time.strftime("%Y-%m-%d %H:%M:%S")
+        date_obj = self.pool.get('ir.date')
+        return date_obj.today(cursor, user, context=context)
     
     def render(self, cursor, request, arguments=None):
         """
