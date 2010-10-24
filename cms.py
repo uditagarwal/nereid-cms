@@ -304,10 +304,12 @@ class CMSArticles(ModelSQL, ModelView):
         return user
     
     def default_create_date(self, cursor, user, context=None ):
-        return time.strftime("%Y-%m-%d %H:%M:%S")
+        date_obj = self.pool.get('ir.date')
+        return date_obj.today(cursor, user, context=context) 
     
     def default_published_on(self, cursor, user, context=None ):
-        return time.strftime("%Y-%m-%d %H:%M:%S")
+        date_obj = self.pool.get('ir.date')
+        return date_obj.today(cursor, user, context=context)
     
     def render(self, cursor, request, arguments=None):
         """
