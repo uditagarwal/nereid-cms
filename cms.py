@@ -175,7 +175,6 @@ class CMSMenuitems(ModelSQL, ModelView):
     _name = 'nereid.cms.menuitems'
     _description = __doc__
     _rec_name = 'unique_name'
-    _order = ('sequence', 'ASC')
     
     title = fields.Char('Title', size=100, required=True,)
     unique_name = fields.Char(
@@ -226,6 +225,7 @@ class CMSMenuitems(ModelSQL, ModelView):
             'wrong_recursion': 
             'Error ! You can not create recursive menuitems.',
         })
+        self._order.insert(0, ('sequence', 'ASC'))
     
     def on_change_with_unique_name(self, cursor, 
                                         user, vals, context=None):
