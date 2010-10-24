@@ -3,18 +3,20 @@
 "Nereid CMS"
 
 import time
+
 from nereid.templating import render_template
 from nereid.threading import local
 from nereid.helpers import slugify
+from nereid.exceptions import NotFound
 from trytond.pyson import Eval
 from trytond.model import ModelSQL, ModelView, fields
 
-class CMSMenus(ModelSQL, ModelView):
-    "Nereid CMS Menus"
-    _name = 'nereid.cms.menus'
+class Menu(ModelSQL, ModelView):
+    "Nereid CMS Menu"
+    _name = 'nereid.cms.menu'
     _description = __doc__
 
-    name = fields.Char('Name', size=100, required=True)
+    name = fields.Char('Name', required=True)
     unique_identifier = fields.Char(
         'Unique Identifier', 
         required=True,
@@ -26,7 +28,7 @@ class CMSMenus(ModelSQL, ModelView):
 
     model = fields.Many2One(
         'ir.model', 
-        'Open ERP Model', 
+        'Tryton Model', 
         required=True
     )
     parent_field = fields.Many2One('ir.model.field', 'Parent',
@@ -61,7 +63,7 @@ class CMSMenus(ModelSQL, ModelView):
         return True
 
     def __init__(self):
-        super(CMSMenus, self).__init__()
+        super(Menu, self).__init__()
         self._sql_constraints += [
             ('unique_identifier', 'UNIQUE(unique_identifier, website)',
                 'The Unique Identifier of the Menu must be unique.'),
@@ -161,25 +163,25 @@ class CMSMenus(ModelSQL, ModelView):
                 vals['unique_identifier'] = slugify(vals['name'])
             return vals['unique_identifier']
 
-CMSMenus()
+Menu()
 
 
-class CMSMenuitems(ModelSQL, ModelView):
-    "Nereid CMS Menuitems"
-    _name = 'nereid.cms.menuitems'
+class MenuItem(ModelSQL, ModelView):
+    "Nereid CMS Menuitem"
+    _name = 'nereid.cms.menuitem'
     _description = __doc__
     _rec_name = 'unique_name'
     _order = 'sequence'
     
-    title= fields.Char('Title', size=100, required=True,)
+    title= fields.Char('Title', required=True,)
     unique_name= fields.Char(
         'Unique Name', 
         required=True, 
         on_change_with=['title', 'unique_name'])
-    link= fields.Char('Link', size=255,)
-    parent= fields.Many2One('nereid.cms.menuitems', 'Parent Menuitem',)
+    link= fields.Char('Link')
+    parent= fields.Many2One('nereid.cms.menuitem', 'Parent Menuitem',)
     child_id= fields.One2Many(
-        'nereid.cms.menuitems', 
+        'nereid.cms.menuitem', 
         'parent', 
         string='Child Menu Items'
     )
@@ -201,7 +203,7 @@ class CMSMenuitems(ModelSQL, ModelView):
         """
         level = 100
         while len(ids):
-            cursor.execute('select distinct parent from nereid_cms_menuitems \
+            cursor.execute('select distinct parent from nereid_cms_menuitem \
                                         where id in (' + ','.join(
                                                         map(str, ids)
                                                         ) + ')')
@@ -212,7 +214,7 @@ class CMSMenuitems(ModelSQL, ModelView):
         return True
 
     def __init__(self):
-        super(CMSMenuitems, self).__init__()
+        super(MenuItem, self).__init__()
         self._constraints += [
             ('check_recursion', 'wrong_recursion')
         ]
@@ -228,7 +230,7 @@ class CMSMenuitems(ModelSQL, ModelView):
                 vals['unique_name'] = slugify(vals['title'])
             return vals['unique_name']
 
-CMSMenuitems()
+MenuItem()
 
 
 class ArticleCategory(ModelSQL, ModelView):
@@ -267,7 +269,7 @@ class ArticleCategory(ModelSQL, ModelView):
 ArticleCategory()
 
 
-class CMSArticles(ModelSQL, ModelView):
+class Article(ModelSQL, ModelView):
     "CMS Articles"
     _name = 'nereid.cms.article'
     _inherits = {'nereid.flatpage': 'flatpage_id'}
@@ -289,7 +291,6 @@ class CMSArticles(ModelSQL, ModelView):
     create_date = fields.DateTime('Created Date')
     published_on = fields.DateTime('Published On')
     sequence= fields.Integer('Sequence', required=True,)
-    # TODO: Meta Information
 
     def default_active(self, cursor, user, context=None ):
         return True
@@ -308,19 +309,22 @@ class CMSArticles(ModelSQL, ModelView):
         Renders the template
         """
         uri = arguments.get('uri', None)
-        if uri:
-            article_ids = self.search(cursor, request.tryton_user.id, 
-                                       [
-                                        ('uri', '=', uri)
-                                        ], 
-                                        context = request.tryton_context)
-            if article_ids:
-                article = self.browse(cursor, request.tryton_user.id, 
-                                       article_ids[0], 
-                                       context = request.tryton_context)
-                template_name = article.template.name
-                html = render_template(template_name, article=article)            
-                return local.application.response_class(html, 
-                                                        mimetype='text/html')
+        article_ids = self.search(
+            cursor, request.tryton_user.id, 
+            [
+             ('uri', '=', uri)
+            ], 
+            context = request.tryton_context
+            )
+        if not article_ids:
+            return NotFound(uri)
+        article = self.browse(
+            cursor, request.tryton_user.id, 
+            article_ids[0], context = request.tryton_context
+            )
+        template_name = article.template.name
+        html = render_template(template_name, article=article)            
+        return local.application.response_class(
+            html, mimetype='text/html')
         
-CMSArticles()
+Article()
