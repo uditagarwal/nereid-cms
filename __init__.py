@@ -1,4 +1,4 @@
 #This file is part of Tryton.  The COPYRIGHT file at the top level of
 #this repository contains the full copyright notices and license terms.
 
-from cms import CMSMenus, CMSMenuitems, ArticleCategory, CMSArticles
+from cms import Menu, MenuItem, ArticleCategory, Article
