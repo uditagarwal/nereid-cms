@@ -339,7 +339,48 @@ class CMSArticles(ModelSQL, ModelView):
     def default_published_on(self, cursor, user, context=None ):
         date_obj = self.pool.get('ir.date')
         return date_obj.today(cursor, user, context=context)
-    
+
+    def get_articles(self, request):
+        """
+        Template Context processor method
+
+        This method could be used to fetch articles based on
+        a domain expression which becomes the argument
+
+        From the templates the usage would be:
+
+        `get_articles([('author', '=', 'sharoon')])`
+        """
+        def wrapper(domain, offset=0, limit=10, order=None):
+            """
+            :param domain: a list of tuples or lists
+                lists are constructed like this:
+                ``['operator', args, args, ...]``
+                operator can be 'AND' or 'OR', if it is missing the default
+                value will be 'AND'
+                tuples are constructed like this:
+                ``('field name', 'operator', value)``
+                field name: is a field name from the model or a relational field
+                by using '.' as separator.
+                operator must be in OPERATORS
+            :param offset: an integer to specify the offset of the result
+            :param limit: an integer to specify the number of result
+            :param order: a list of tuples that are constructed like this:
+                ``('field name', 'DESC|ASC')``
+                allowing to specify the order of result
+            :return: a list of Browse Records
+            """
+            ids = self.search(
+                local.transaction.cursor,
+                request.tryton_user.id,
+                domain, offset, limit, order,
+                request.tryton_context
+                )
+            return self.browse(
+                local.transaction.cursor, user, ids, request.tryton_context
+                )
+        return {'get_articles': wrapper}
+
     def render(self, cursor, request, arguments=None):
         """
         Renders the template
