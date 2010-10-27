@@ -177,22 +177,22 @@ class MenuItem(ModelSQL, ModelView):
     _rec_name = 'unique_name'
     _order = 'sequence'
     
-    title= fields.Char(
+    title = fields.Char(
         'Title', required=True, 
         on_change=['title', 'unique_name'])
-    unique_name= fields.Char(
+    unique_name = fields.Char(
         'Unique Name', 
         required=True, 
         )
-    link= fields.Char('Link')
-    parent= fields.Many2One('nereid.cms.menuitem', 'Parent Menuitem',)
-    child_id= fields.One2Many(
+    link = fields.Char('Link')
+    parent = fields.Many2One('nereid.cms.menuitem', 'Parent Menuitem',)
+    child_id = fields.One2Many(
         'nereid.cms.menuitem', 
         'parent', 
         string='Child Menu Items'
     )
-    active= fields.Boolean('Active')
-    sequence= fields.Integer('Sequence', required=True,)
+    active = fields.Boolean('Active')
+    sequence = fields.Integer('Sequence', required=True,)
 
     def default_active(self, cursor, user, context=None ):
         return True
@@ -200,7 +200,7 @@ class MenuItem(ModelSQL, ModelView):
     def check_recursion(self, cursor, user, ids):
         """
         Check the recursion beyond a certain limit.
-      
+
         :param cursor: Database Cursor
         :param user: ID of User
         :param ids: ID of Current Record
@@ -334,7 +334,7 @@ class Article(ModelSQL, ModelView):
         if context.get('employee'):
             employee_id = context['employee']
         else:
-            user = user_obj.browse(cursor, user_id, user_id, context=context)
+            user = user_obj.browse(cursor, user, user, context=context)
             if user.employee:
                 employee_id = user.employee.id
         if employee_id:
