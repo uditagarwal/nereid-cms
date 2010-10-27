@@ -164,10 +164,9 @@ class Menu(ModelSQL, ModelView):
 
     def on_change_with_unique_identifier(self, cursor, 
                                         user, vals, context=None):
-        if vals.get('name'):
-            if not vals.get('unique_identifier'):
-                vals['unique_identifier'] = slugify(vals['name'])
-            return vals['unique_identifier']
+        if vals.get('name') and not vals.get('unique_identifier'):
+            vals['unique_identifier'] = slugify(vals['name'])
+        return vals['unique_identifier']
 
 Menu()
 
@@ -231,10 +230,9 @@ class MenuItem(ModelSQL, ModelView):
     
     def on_change_with_unique_name(self, cursor, 
                                         user, vals, context=None):
-        if vals.get('title'):
-            if not vals.get('unique_name'):
-                vals['unique_name'] = slugify(vals['title'])
-            return vals['unique_name']
+        if vals.get('title') and not vals.get('unique_name'):
+            vals['unique_name'] = slugify(vals['title'])
+        return vals['unique_name']
 
 MenuItem()
 
@@ -269,10 +267,9 @@ class ArticleCategory(ModelSQL, ModelView):
     
     def on_change_with_unique_name(self, cursor, 
                                         user, vals, context=None):
-        if vals.get('title'):
-            if not vals.get('unique_name'):
-                vals['unique_name'] = slugify(vals['title'])
-            return vals['unique_name']
+        if vals.get('title') and not vals.get('unique_name'):
+            vals['unique_name'] = slugify(vals['title'])
+        return vals['unique_name']
 
     def render(self, cursor, request, arguments=None):
         """
@@ -325,14 +322,14 @@ class Article(ModelSQL, ModelView):
 
     def default_active(self, cursor, user, context=None ):
         return True
-    
+
     def default_author(self, cursor, user, context=None ):
         return user
-    
+
     def default_create_date(self, cursor, user, context=None ):
         date_obj = self.pool.get('ir.date')
         return date_obj.today(cursor, user, context=context) 
-    
+
     def default_published_on(self, cursor, user, context=None ):
         date_obj = self.pool.get('ir.date')
         return date_obj.today(cursor, user, context=context)
