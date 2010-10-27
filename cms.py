@@ -382,7 +382,9 @@ class Article(ModelSQL, ModelView):
                 request.tryton_context
                 )
             return self.browse(
-                local.transaction.cursor, user, ids, request.tryton_context
+                local.transaction.cursor, 
+                request.tryton_user.id,
+                ids, request.tryton_context
                 )
         return {'get_articles': wrapper}
 
