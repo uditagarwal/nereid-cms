@@ -16,12 +16,11 @@ class Menu(ModelSQL, ModelView):
     _name = 'nereid.cms.menu'
     _description = __doc__
 
-    name = fields.Char('Name', required=True)
+    name = fields.Char('Name', required=True, 
+        on_change=['name', 'unique_identifier'])
     unique_identifier = fields.Char(
         'Unique Identifier', 
-        required=True,
-        on_change_with=['name', 'unique_identifier']
-    )
+        required=True,)
     description = fields.Text('Description')
     website = fields.Many2One('nereid.website', 'WebSite')
     active = fields.Boolean('Active')
@@ -162,11 +161,11 @@ class Menu(ModelSQL, ModelView):
             )
         return {'menu_for': wrapper}
 
-    def on_change_with_unique_identifier(self, cursor, 
-                                        user, vals, context=None):
+    def on_change_name(self, cursor, user, vals, context=None):
+        res = { }
         if vals.get('name') and not vals.get('unique_identifier'):
-            vals['unique_identifier'] = slugify(vals['name'])
-        return vals['unique_identifier']
+            res['unique_identifier'] = slugify(vals['name'])
+        return res
 
 Menu()
 
@@ -178,11 +177,13 @@ class MenuItem(ModelSQL, ModelView):
     _rec_name = 'unique_name'
     _order = 'sequence'
     
-    title= fields.Char('Title', required=True,)
+    title= fields.Char(
+        'Title', required=True, 
+        on_change=['title', 'unique_name'])
     unique_name= fields.Char(
         'Unique Name', 
         required=True, 
-        on_change_with=['title', 'unique_name'])
+        )
     link= fields.Char('Link')
     parent= fields.Many2One('nereid.cms.menuitem', 'Parent Menuitem',)
     child_id= fields.One2Many(
@@ -228,11 +229,11 @@ class MenuItem(ModelSQL, ModelView):
             'Error ! You can not create recursive menuitems.',
         })
     
-    def on_change_with_unique_name(self, cursor, 
-                                        user, vals, context=None):
+    def on_change_title(self, cursor, user, vals, context=None):
+        res = {}
         if vals.get('title') and not vals.get('unique_name'):
-            vals['unique_name'] = slugify(vals['title'])
-        return vals['unique_name']
+            res['unique_name'] = slugify(vals['title'])
+        return res
 
 MenuItem()
 
@@ -243,12 +244,12 @@ class ArticleCategory(ModelSQL, ModelView):
     _description = __doc__
     _rec_name = 'unique_name'
 
-    title = fields.Char('Title', size=100, required=True,)
+    title = fields.Char(
+        'Title', size=100, 
+        required=True, on_change=['title', 'unique_name'])
     unique_name = fields.Char(
         'Unique Name', 
-        required=True,
-        on_change_with=['title', 'unique_name'],
-    )
+        required=True,)
     active = fields.Boolean('Active',)
     description = fields.Text('Description',)
     template = fields.Many2One('nereid.template', 'Template', required=True)
@@ -257,19 +258,19 @@ class ArticleCategory(ModelSQL, ModelView):
     def default_active(self, cursor, user, context=None ):
         'Return True' 
         return True
-    
+
     def __init__(self):
         super(ArticleCategory, self).__init__()
         self._sql_constraints += [
             ('unique_name', 'UNIQUE(unique_name)',
                 'The Unique Name of the Category must be unique.'),
         ]
-    
-    def on_change_with_unique_name(self, cursor, 
-                                        user, vals, context=None):
+
+    def on_change_title(self, cursor, user, vals, context=None):
+        res = { }
         if vals.get('title') and not vals.get('unique_name'):
-            vals['unique_name'] = slugify(vals['title'])
-        return vals['unique_name']
+            res['unique_name'] = slugify(vals['title'])
+        return res
 
     def render(self, cursor, request, arguments=None):
         """
@@ -300,22 +301,22 @@ ArticleCategory()
 class Article(ModelSQL, ModelView):
     "CMS Articles"
     _name = 'nereid.cms.article'
-    _inherits = {'nereid.flatpage': 'flatpage_id'}
+    _inherits = {'nereid.flatpage': 'flatpage'}
     _order = 'sequence'
-    
-    flatpage_id = fields.Many2One(
+
+    flatpage = fields.Many2One(
         'nereid.flatpage',
         'Flatpage', 
         required=True
     )
     active = fields.Boolean('Active')
     category = fields.Many2One(
-        'nereid.article.category', 
+        'nereid.article.category',
         'Category',
         required=True,
     )
     image = fields.Many2One('nereid.static.file', 'Image')
-    author = fields.Many2One('res.user', 'Author',)
+    author = fields.Many2One('company.employee', 'Author')
     create_date = fields.DateTime('Created Date')
     published_on = fields.DateTime('Published On')
     sequence= fields.Integer('Sequence', required=True,)
@@ -324,11 +325,21 @@ class Article(ModelSQL, ModelView):
         return True
 
     def default_author(self, cursor, user, context=None ):
-        return user
+        user_obj = self.pool.get('res.user')
+        employee_obj = self.pool.get('company.employee')
 
-    def default_create_date(self, cursor, user, context=None ):
-        date_obj = self.pool.get('ir.date')
-        return date_obj.today(cursor, user, context=context) 
+        if context is None:
+            context = {}
+        employee_id = None
+        if context.get('employee'):
+            employee_id = context['employee']
+        else:
+            user = user_obj.browse(cursor, user_id, user_id, context=context)
+            if user.employee:
+                employee_id = user.employee.id
+        if employee_id:
+            return employee_id
+        return False
 
     def default_published_on(self, cursor, user, context=None ):
         date_obj = self.pool.get('ir.date')
