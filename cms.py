@@ -356,7 +356,7 @@ class Article(ModelSQL, ModelView):
 
         `get_articles([('author', '=', 'sharoon')])`
         """
-        def wrapper(domain, offset=0, limit=10, order=None):
+        def wrapper(domain, per_page=10, page=1, order=None):
             """
             :param domain: a list of tuples or lists
                 lists are constructed like this:
@@ -368,24 +368,16 @@ class Article(ModelSQL, ModelView):
                 field name: is a field name from the model or a relational field
                 by using '.' as separator.
                 operator must be in OPERATORS
-            :param offset: an integer to specify the offset of the result
-            :param limit: an integer to specify the number of result
+            :param per_page: an integer to specify the items per page
+            :param page: The page to display
             :param order: a list of tuples that are constructed like this:
                 ``('field name', 'DESC|ASC')``
                 allowing to specify the order of result
-            :return: a list of Browse Records
+            :return: a Pagination object
             """
-            ids = self.search(
-                local.transaction.cursor,
-                request.tryton_user.id,
-                domain, offset, limit, order,
-                request.tryton_context
-                )
-            return self.browse(
-                local.transaction.cursor, 
-                request.tryton_user.id,
-                ids, request.tryton_context
-                )
+            return Pagination(
+                self, domain, per_page, page, order
+            )
         return {'get_articles': wrapper}
 
     def render(self, cursor, request, arguments=None):
