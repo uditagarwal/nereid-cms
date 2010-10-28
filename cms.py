@@ -6,7 +6,7 @@ import time
 
 from nereid.templating import render_template
 from nereid.threading import local
-from nereid.helpers import slugify
+from nereid.helpers import slugify, Pagination
 from nereid.exceptions import NotFound
 from trytond.pyson import Eval
 from trytond.model import ModelSQL, ModelView, fields
