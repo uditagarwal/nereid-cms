@@ -10,9 +10,9 @@ major_version, minor_version, _ = info.get('version', '0.0.1').split('.', 2)
 major_version = int(major_version)
 minor_version = int(minor_version)
 
-requires = ['nereid']
+requires = []
 for dep in info.get('depends', []):
-    if not re.match(r'(ir|res|workflow|webdav)(\W|$)', dep):
+    if not re.match(r'(ir|res|workflow|webdav|nereid)(\W|$)', dep):
         requires.append('trytond_%s >= %s.%s, < %s.%s' %
                 (dep, major_version, minor_version, major_version,
                     minor_version + 1))

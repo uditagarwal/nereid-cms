@@ -2,14 +2,15 @@
 #of this repository contains the full copyright notices and license terms.
 "Nereid CMS"
 
-import time
+from nereid import render_template
+from nereid.helpers import slugify
+from nereid.backend import ModelPagination
+from werkzeug.exceptions import NotFound, InternalServerError
 
-from nereid.templating import render_template
-from nereid.threading import local
-from nereid.helpers import slugify, Pagination
-from nereid.exceptions import NotFound
-from trytond.pyson import Eval
+from trytond.pyson import Eval, Not, Equal, Bool
 from trytond.model import ModelSQL, ModelView, fields
+from trytond.transaction import Transaction
+
 
 class Menu(ModelSQL, ModelView):
     "Nereid CMS Menu"
@@ -18,44 +19,34 @@ class Menu(ModelSQL, ModelView):
 
     name = fields.Char('Name', required=True, 
         on_change=['name', 'unique_identifier'])
-    unique_identifier = fields.Char(
-        'Unique Identifier', 
-        required=True,)
+    unique_identifier = fields.Char('Unique Identifier', required=True,)
     description = fields.Text('Description')
     website = fields.Many2One('nereid.website', 'WebSite')
     active = fields.Boolean('Active')
 
-    model = fields.Many2One(
-        'ir.model', 
-        'Tryton Model', 
-        required=True
-    )
-    parent_field = fields.Many2One('ir.model.field', 'Parent',
-        domain=[
-            ('model', '=', Eval('model')),
-            ('ttype', '=', 'many2one')
-        ], required=True
-    )
+    model = fields.Many2One('ir.model', 'Tryton Model', required=True)
     children_field = fields.Many2One('ir.model.field', 'Children',
         domain=[
             ('model', '=', Eval('model')),
             ('ttype', '=', 'one2many')
-        ], required=True
-    )
+        ], required=True)
     uri_field = fields.Many2One('ir.model.field', 'URI Field',
         domain=[
             ('model', '=', Eval('model')),
             ('ttype', '=', 'char')
-        ], required=True
-    )
+        ], required=True)
+    title_field = fields.Many2One('ir.model.field', 'Title Field',
+        domain=[
+            ('model', '=', Eval('model')),
+            ('ttype', '=', 'char')
+        ], required=True)
     identifier_field = fields.Many2One('ir.model.field', 'Identifier Field',
         domain=[
             ('model', '=', Eval('model')),
             ('ttype', '=', 'char')
-        ], required=True
-    )
+        ], required=True)
 
-    def default_active(self, cursor, user, context=None):
+    def default_active(self):
         """
         By Default the Menu is active
         """
@@ -68,104 +59,79 @@ class Menu(ModelSQL, ModelView):
                 'The Unique Identifier of the Menu must be unique.'),
         ]
 
-    def _menu_item_to_dict(self, cursor, user, menu, menu_item):
+    def _menu_item_to_dict(self, menu, menu_item):
         """
         :param menu_item: BR of the menu item
         :param menu: BR of the menu set
         """
         return {
-                'name' : getattr(menu_item, menu.identifier_field.name),
+                'name' : getattr(menu_item, menu.title_field.name),
                 'uri' : getattr(menu_item, menu.uri_field.name),
             }
 
-    def _generate_menu_tree(self, cursor, user, 
-            menu, menu_item, context):
+    def _generate_menu_tree(self, menu, menu_item):
         """
         :param menu: BrowseRecord of the Menu
         :param menu_item: BrowseRecord of the root menu_item
-        :param context: Tryton Context
         """
         result = {'children' : [ ]}
-        result.update(
-            self._menu_item_to_dict(
-                cursor, user, menu, menu_item
-                )
-            )
+        result.update(self._menu_item_to_dict(menu, menu_item))
         # If children exist iteratively call _generate_..
         children = getattr(menu_item, menu.children_field.name)
         if children:
             for child in children:
                 result['children'].append(
-                    self._generate_menu_tree(
-                        cursor, user, menu, child, context
-                    )
-                )
+                    self._generate_menu_tree(menu, child))
         return result
 
-    def _menu_for(self, cursor, user, identifier,
-        ident_field_value, context=None):
+    def menu_for(self, identifier, ident_field_value):
         """
         Returns a dictionary of menu tree
 
-        :param cursor: Database Cursor
-        :param user: ID of the user
         :param identifier: The unique identifier from which the menu
                 has to be chosen
         :param ident_field_value: The value of the field that has to be 
                 looked up on model with search on ident_field
-        :param context: Tryton context
         """
         # First pick up the menu through identifier
-        menu_id = self.search(cursor, user, [
-            ('unique_identifier', '=', identifier)
-            ], limit=1, context=context)
+        menu_id = self.search(
+            [('unique_identifier', '=', identifier)], limit=1)
+
         if not menu_id:
-            # TODO: May be raise an error ? Look at some other app
-            # how this is handled
-            return None
-        menu = self.browse(cursor, user, menu_id[0], context)
+            current_app.logger.error(
+                "Menu %s could not be identified" % identifier)
+            return InternalServerError()
+
+        menu = self.browse(menu_id[0])
 
         # Get the data from the model
         menu_item_object = self.pool.get(menu.model.model)
-        menu_item_id = menu_item_object.search(cursor, user, 
+        menu_item_id = menu_item_object.search( 
             [(menu.identifier_field.name, '=', ident_field_value)],
-            limit=1, context=context
-            )
+            limit=1)
         if not menu_item_id:
-            # Raise error ?
-            return None
-        root_menu_item = menu_item_object.browse(
-            cursor, user, menu_item_id[0], context
-            )
-        return self._generate_menu_tree(
-            cursor, user, menu, root_menu_item, context
-            )
+            current_app.logger.error(
+                "Menu %s could not be identified" % ident_field_value)
+            return InternalServerError()
 
-    def menu_for(self, request):
-        """
-        Template context processor method
+        root_menu_item = menu_item_object.browse(menu_item_id[0])
+        return self._generate_menu_tree(menu, root_menu_item)
 
-        This method could be used to fetch a specific menu for like
-        a wrapper from the templates
-
-        From the templates the usage would be:
-
-        `menu_for('category_menu', 'all_products')`
-        """
-        def wrapper(identifier, ident_field_value):
-            return self._menu_for(
-                local.transaction.cursor,
-                request.tryton_user.id,
-                identifier, ident_field_value,
-                request.tryton_context
-            )
-        return {'menu_for': wrapper}
-
-    def on_change_name(self, cursor, user, vals, context=None):
+    def on_change_name(self, vals):
         res = { }
         if vals.get('name') and not vals.get('unique_identifier'):
             res['unique_identifier'] = slugify(vals['name'])
         return res
+
+    def context_processor(self):
+        """This function will be called by nereid to update
+        the template context. Must return a dictionary that the context
+        will be updated with.
+
+        This function is registered with nereid.template.context_processor
+        in xml code
+        """
+        return {'menu_for': self.menu_for}
 
 Menu()
 
@@ -176,48 +142,36 @@ class MenuItem(ModelSQL, ModelView):
     _description = __doc__
     _rec_name = 'unique_name'
     _order = 'sequence'
-    
-    title = fields.Char(
-        'Title', required=True, 
+
+    title = fields.Char('Title', required=True, 
         on_change=['title', 'unique_name'])
-    unique_name = fields.Char(
-        'Unique Name', 
-        required=True, 
-        )
+    unique_name = fields.Char('Unique Name', required=True)
     link = fields.Char('Link')
+    use_url_builder = fields.Boolean('Use URL Builder'),
+    url_for_build = fields.Many2One('nereid.url_rule', 'Rule',
+        depends=['use_url_builder'],
+        states={
+            'required': Equal(Bool(Eval('use_url_builder')), True),
+            'invisible': Not(Equal(Bool(Eval('use_url_builder')), True)),
+            }),
+    values_to_build = fields.Char('Values', depends=['use_url_builder'],
+        states={
+            'required': Equal(Bool(Eval('use_url_builder')), True),
+            'invisible': Not(Equal(Bool(Eval('use_url_builder')), True)),
+            }
+        )
+    full_url = fields.Function(fields.Char('Full URL'), 'get_full_url')
     parent = fields.Many2One('nereid.cms.menuitem', 'Parent Menuitem',)
-    child_id = fields.One2Many(
-        'nereid.cms.menuitem', 
-        'parent', 
-        string='Child Menu Items'
-    )
+    child = fields.One2Many('nereid.cms.menuitem', 'parent',
+        string='Child Menu Items')
     active = fields.Boolean('Active')
-    sequence = fields.Integer('Sequence', required=True,)
+    sequence = fields.Integer('Sequence', required=True)
 
-    def default_active(self, cursor, user, context=None ):
+    def default_active(self):
         return True
 
-    def check_recursion(self, cursor, user, ids):
-        """
-        Check the recursion beyond a certain limit.
-
-        :param cursor: Database Cursor
-        :param user: ID of User
-        :param ids: ID of Current Record
-
-        : return: True
-        """
-        level = 100
-        while len(ids):
-            cursor.execute('select distinct parent from nereid_cms_menuitem \
-                                        where id in (' + ','.join(
-                                                        map(str, ids)
-                                                        ) + ')')
-            ids = filter(None, map(lambda x:x[0], cursor.fetchall()))
-            if not level:
-                return False
-            level -= 1
-        return True
+    def default_values_to_build(self):
+        return '{ }'
 
     def __init__(self):
         super(MenuItem, self).__init__()
@@ -228,8 +182,8 @@ class MenuItem(ModelSQL, ModelView):
             'wrong_recursion': 
             'Error ! You can not create recursive menuitems.',
         })
-    
-    def on_change_title(self, cursor, user, vals, context=None):
+
+    def on_change_title(self,vals):
         res = {}
         if vals.get('title') and not vals.get('unique_name'):
             res['unique_name'] = slugify(vals['title'])
@@ -244,18 +198,15 @@ class ArticleCategory(ModelSQL, ModelView):
     _description = __doc__
     _rec_name = 'unique_name'
 
-    title = fields.Char(
-        'Title', size=100, 
-        required=True, on_change=['title', 'unique_name'])
-    unique_name = fields.Char(
-        'Unique Name', 
-        required=True,)
-    active = fields.Boolean('Active',)
+    title = fields.Char('Title', size=100,
+        required=True, on_change=['title', 'unique_name'], select=1)
+    unique_name = fields.Char('Unique Name', required=True, select=1)
+    active = fields.Boolean('Active', select=2)
     description = fields.Text('Description',)
     template = fields.Many2One('nereid.template', 'Template', required=True)
     articles = fields.One2Many('nereid.cms.article', 'category', 'Articles')
 
-    def default_active(self, cursor, user, context=None ):
+    def default_active(self):
         'Return True' 
         return True
 
@@ -266,141 +217,86 @@ class ArticleCategory(ModelSQL, ModelView):
                 'The Unique Name of the Category must be unique.'),
         ]
 
-    def on_change_title(self, cursor, user, vals, context=None):
+    def on_change_title(self, vals):
         res = { }
         if vals.get('title') and not vals.get('unique_name'):
             res['unique_name'] = slugify(vals['title'])
         return res
 
-    def render(self, cursor, request, arguments=None):
+    def render(self, uri, page=1):
         """
         Renders the category
         """
-        uri = arguments.get('uri', None)
-        user = request.tryton_user.id
-        if not uri:
-            return NotFound()
-        category_ids = self.search(
-            cursor, user, 
-            [('uri', '=', uri)], context = request.tryton_context
-            )
+        article_obj = self.pool.get('nereid.cms.article')
+        category_ids = self.search([('uri', '=', uri)])
         if not category_ids:
             return NotFound()
-        category = self.browse(
-            cursor, user, category_ids[0], request.tryton_context
-            )
-        template_name = article.template.name
-        html = render_template(template_name, category=category)
-        return local.application.response_class(
-            html, mimetype='text/html'
-            )
+
+        category = self.browse(category_ids[0])
+        articles = article_obj.paginate([('category', '=', category.id)], page)
+        return render_template(
+            category.template.name, category=category, articles=articles)
 
 ArticleCategory()
 
 
-class Article(ModelSQL, ModelView):
+class Article(ModelSQL, ModelView, ModelPagination):
     "CMS Articles"
     _name = 'nereid.cms.article'
-    _inherits = {'nereid.flatpage': 'flatpage'}
-    _order = 'sequence'
+    _description = __doc__
 
-    flatpage = fields.Many2One(
-        'nereid.flatpage',
-        'Flatpage', 
-        required=True
-    )
+    uri = fields.Char('URI', required=True, select=True, translate=True)
+    title = fields.Char('Title', required=True, 
+        select=True, translate=True, )#on_change=['title'])
+    content = fields.Text('Content', required=True, translate=True)
+    template = fields.Many2One('nereid.template', 'Template', required=True)
     active = fields.Boolean('Active')
-    category = fields.Many2One(
-        'nereid.article.category',
-        'Category',
-        required=True,
-    )
+    category = fields.Many2One('nereid.article.category', 'Category',
+        required=True)
     image = fields.Many2One('nereid.static.file', 'Image')
     author = fields.Many2One('company.employee', 'Author')
     create_date = fields.DateTime('Created Date')
     published_on = fields.DateTime('Published On')
-    sequence= fields.Integer('Sequence', required=True,)
+    sequence = fields.Integer('Sequence', required=True)
 
-    def default_active(self, cursor, user, context=None ):
+    def default_active(self):
         return True
 
-    def default_author(self, cursor, user, context=None ):
-        user_obj = self.pool.get('res.user')
-        employee_obj = self.pool.get('company.employee')
+    def on_change_title(self, vals):
+        res = { }
+        if vals.get('title') and not vals.get('uri'):
+            res['uri'] = slugify(vals['title'])
+        return res
 
+    def default_author(self):
+        user_obj = self.pool.get('res.user')
+
+        context = Transaction().context
         if context is None:
             context = {}
         employee_id = None
         if context.get('employee'):
             employee_id = context['employee']
         else:
-            user = user_obj.browse(cursor, user, user, context=context)
+            user = user_obj.browse(Transaction().user)
             if user.employee:
                 employee_id = user.employee.id
         if employee_id:
             return employee_id
         return False
 
-    def default_published_on(self, cursor, user, context=None ):
+    def default_published_on(self):
         date_obj = self.pool.get('ir.date')
-        return date_obj.today(cursor, user, context=context)
+        return date_obj.today()
 
-    def get_articles(self, request):
-        """
-        Template Context processor method
-
-        This method could be used to fetch articles based on
-        a domain expression which becomes the argument
-
-        From the templates the usage would be:
-
-        `get_articles([('author', '=', 'sharoon')])`
-        """
-        def wrapper(domain, per_page=10, page=1, order=None):
-            """
-            :param domain: a list of tuples or lists
-                lists are constructed like this:
-                ``['operator', args, args, ...]``
-                operator can be 'AND' or 'OR', if it is missing the default
-                value will be 'AND'
-                tuples are constructed like this:
-                ``('field name', 'operator', value)``
-                field name: is a field name from the model or a relational field
-                by using '.' as separator.
-                operator must be in OPERATORS
-            :param per_page: an integer to specify the items per page
-            :param page: The page to display
-            :param order: a list of tuples that are constructed like this:
-                ``('field name', 'DESC|ASC')``
-                allowing to specify the order of result
-            :return: a Pagination object
-            """
-            return Pagination(
-                self, domain, per_page, page, order
-            )
-        return {'get_articles': wrapper}
-
-    def render(self, cursor, request, arguments=None):
+    def render(self, uri):
         """
         Renders the template
         """
-        uri = arguments.get('uri', None)
-        article_ids = self.search(
-            cursor, request.tryton_user.id, 
-            [
-             ('uri', '=', uri)
-            ], 
-            context = request.tryton_context
-            )
+        article_ids = self.search([('uri', '=', uri)])
         if not article_ids:
-            return NotFound(uri)
-        article = self.browse(
-            cursor, request.tryton_user.id, 
-            article_ids[0], context = request.tryton_context
-            )
-        template_name = article.template.name
-        html = render_template(template_name, article=article)            
-        return local.application.response_class(
-            html, mimetype='text/html')
-        
+            return NotFound()
+        article = self.browse(article_ids[0])
+        return render_template(article.template.name, article=article)
+
 Article()
