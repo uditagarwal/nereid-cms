@@ -2,7 +2,7 @@
 #of this repository contains the full copyright notices and license terms.
 "Nereid CMS"
 
-from nereid import render_template
+from nereid import render_template, current_app
 from nereid.helpers import slugify
 from nereid.backend import ModelPagination
 from werkzeug.exceptions import NotFound, InternalServerError
