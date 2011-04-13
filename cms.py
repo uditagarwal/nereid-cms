@@ -2,7 +2,7 @@
 #of this repository contains the full copyright notices and license terms.
 "Nereid CMS"
 
-from nereid import render_template, current_app
+from nereid import render_template, current_app, cache
 from nereid.helpers import slugify
 from nereid.backend import ModelPagination
 from werkzeug.exceptions import NotFound, InternalServerError
@@ -84,6 +84,7 @@ class Menu(ModelSQL, ModelView):
                     self._generate_menu_tree(menu, child))
         return result
 
+    @cache.memoize_method('nereid.cms.menu', 60 * 60)
     def menu_for(self, identifier, ident_field_value):
         """
         Returns a dictionary of menu tree
@@ -228,7 +229,12 @@ class ArticleCategory(ModelSQL, ModelView):
         Renders the category
         """
         article_obj = self.pool.get('nereid.cms.article')
-        category_ids = self.search([('uri', '=', uri)])
+        # Find in cache or load from DB
+        cache_key = 'nereid.article.category.%s' % uri
+        category_ids = cache.get(cache_key)
+        if not category_ids:
+            category_ids = self.search([('uri', '=', uri)])
+            cache.set(cache_key)
         if not category_ids:
             return NotFound()
 
@@ -293,10 +299,53 @@ class Article(ModelSQL, ModelView, ModelPagination):
         """
         Renders the template
         """
-        article_ids = self.search([('uri', '=', uri)])
+        # Find in cache or load from DB
+        cache_key = 'nereid.cms.article.%s' % uri
+        article_ids = cache.get(cache_key)
+        if not article_ids:
+            article_ids = self.search([('uri', '=', uri)])
+            cache.set(cache_key)
         if not article_ids:
             return NotFound()
         article = self.browse(article_ids[0])
         return render_template(article.template.name, article=article)
 
 Article()
+
+
+class Banner(ModelSQL, ModelView):
+    """Banner for CMS
+    """
+    _name = 'nereid.cms.banner'
+    _description = __doc__
+
+    name = fields.Char('Name', required=True)
+    type = fields.Selection([
+        ('image', 'Image'),
+        ('custom_code', 'Custom Code'),
+        ], 'Type', required=True)
+    state = fields.Selection([
+        ('published', 'Published'),
+        ('archived', 'Archived')
+        ], 'State', required=True)
+    website = fields.Many2One('nereid.website', 'WebSite')
+    description = fields.Char('Description')
+
+    file = fields.Many2One('nereid.static.file', 'File',
+            states={
+                'required': Equal(Eval('type'), 'image')
+            })
+    #file = fields.Char('File/Image URL', translate=True,
+            #states={
+                #'required': Equal(Eval('type'), 'image')
+            #})
+    height = fields.Integer('Height')
+    width = fields.Integer('Width')
+    alternative_text = fields.Char('Alternative Text')
+    click_url = fields.Char('Click URL', translate=True)
+    custom_code = fields.Text('Custom Code', translate=True,
+            states={
+                'required': Equal(Eval('type'), 'custom_code')
+            })
+
+Banner()

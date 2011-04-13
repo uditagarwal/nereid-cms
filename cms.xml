@@ -6,6 +6,10 @@
     -->
 <tryton>
     <data>
+        <menuitem name="CMS" sequence="20" id="menu_nereid_cms"
+            parent="nereid.menu_nereid" 
+            groups="nereid.group_nereid_admin" />
+
         <!-- Menus -->
         <record model="ir.ui.view" id="cms_menus_view_form">
             <field name="model">nereid.cms.menu</field>
@@ -72,7 +76,7 @@
             <field name="act_window" ref="act_cms_menus_form" />
         </record>
         <menuitem name="Menus" sequence="20" id="menu_nereid_cms_menus"
-            parent="nereid.menu_nereid" 
+            parent="menu_nereid_cms" 
             groups="nereid.group_nereid_admin" />
         <menuitem name="Menus" sequence="20"
             id="menu_nereid_cms_menus_all" 
@@ -160,7 +164,7 @@
 
         <!-- Articles -->
         <menuitem id="menu_cms_articles" name="Articles" 
-            parent="nereid.menu_nereid"
+            parent="menu_nereid_cms"
             groups="nereid.group_nereid_admin" />
 
         <record model="ir.ui.view" id="cms_article_categ_view_form">
@@ -314,6 +318,84 @@
             name="Articles" parent="menu_cms_articles"
             groups="nereid.group_nereid_admin" />
 
+        <!-- Banners -->
+        <record model="ir.ui.view" id="cms_banner_view_form">
+            <field name="model">nereid.cms.banner</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <![CDATA[
+                    <form string="CMS Banner">
+                        <group colspan="6" col="4" id="definition">
+                            <label name="name" />
+                            <field name="name" />
+                            <label name="type" />
+                            <field name="type" />
+                            <newline />
+                            <label name="website" />
+                            <field name="website" />
+                            <label name="description" />
+                            <field name="description" />
+                            <newline />
+                            <separator id="sepr_image" string="Image" colspan="4"/>
+                            <label name="file" />
+                            <field name="file" />
+                            <label name="alternative_text"/>
+                            <field name="alternative_text"/>
+                            <newline />
+                            <label name="height"/>
+                            <field name="height"/>
+                            <label name="width"/>
+                            <field name="width"/>
+                            <newline />
+                            <separator id="sepr_custom" string="Custom Code" colspan="4"/>
+                            <field name="custom_code" colspan="4"/>
+                            <newline />
+                            <separator id="sepr_blank" string="" colspan="4"/>
+                            <label name="state"/>
+                            <field name="state" colspan="3"/>
+                        </group>
+                    </form>
+                ]]>
+            </field>
+        </record>
+
+         <record model="ir.ui.view" id="cms_banner_view_tree">
+            <field name="model">nereid.cms.banner</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+                <![CDATA[
+                    <tree string="CMS Banners">
+                        <field name="name" />
+                        <field name="type" />
+                        <field name="website" />
+                        <field name="state" />
+                    </tree>
+                ]]>
+            </field>
+        </record>
+
+        <record model="ir.action.act_window" id="action_cms_banners">
+            <field name="name">CMS Banners</field>
+            <field name="res_model">nereid.cms.banner</field>
+            <field name="view_type">form</field>
+        </record>
+        <record model="ir.action.act_window.view" 
+                id="act_cms_banners_form_view1">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="cms_banner_view_form"/>
+            <field name="act_window" ref="action_cms_banners"/>
+        </record>
+        <record model="ir.action.act_window.view" 
+                id="act_cms_banners_form_view2">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="cms_banner_view_tree"/>
+            <field name="act_window" ref="action_cms_banners"/>
+        </record>
+
+        <menuitem action="action_cms_banners" id="menu_cms_banners"
+            name="Banners" parent="menu_nereid_cms"
+            groups="nereid.group_nereid_admin" />
+
         <!-- Model Access -->
         <record model="ir.model.access" id="access_menus_nereid_admin">
             <field name="model" search="[('model', '=', 'nereid.cms.menu')]"/>
@@ -341,5 +423,15 @@
             <field name="perm_create" eval="True"/>
             <field name="perm_delete" eval="True"/>
         </record>
+        <record model="ir.model.access" id="access_banner_nereid_admin">
+            <field name="model" 
+                search="[('model', '=', 'nereid.cms.banner')]"/>
+            <field name="group" ref="nereid.group_nereid_admin"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_delete" eval="True"/>
+        </record>
+
     </data>
 </tryton>
