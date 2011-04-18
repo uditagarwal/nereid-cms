@@ -331,8 +331,8 @@
                             <label name="type" />
                             <field name="type" />
                             <newline />
-                            <label name="website" />
-                            <field name="website" />
+                            <label name="category" />
+                            <field name="category" />
                             <label name="description" />
                             <field name="description" />
                             <newline />
@@ -367,7 +367,7 @@
                     <tree string="CMS Banners">
                         <field name="name" />
                         <field name="type" />
-                        <field name="website" />
+                        <field name="category" />
                         <field name="state" />
                     </tree>
                 ]]>
