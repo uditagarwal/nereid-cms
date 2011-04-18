@@ -313,39 +313,52 @@ class Article(ModelSQL, ModelView, ModelPagination):
 Article()
 
 
+class BannerCategory(ModelSQL, ModelView):
+    """Collection of related Banners"""
+    _name = 'nereid.cms.banner.category'
+    _description = __doc__
+
+    name = fields.Char('Name', required=True)
+    banners = fields.One2Many('nereid.cms.banner', 'category', 'Banners')
+    website = fields.Many2One('nereid.website', 'WebSite')
+
+BannerCategory()
+
+
 class Banner(ModelSQL, ModelView):
-    """Banner for CMS
-    """
+    """Banner for CMS."""
     _name = 'nereid.cms.banner'
     _description = __doc__
 
     name = fields.Char('Name', required=True)
+    description = fields.Char('Description')
+    category = fields.Many2One('nereid.cms.banner.category', 'Category', 
+        required=True)
+
+    # Type related data
     type = fields.Selection([
         ('image', 'Image'),
         ('custom_code', 'Custom Code'),
         ], 'Type', required=True)
-    state = fields.Selection([
-        ('published', 'Published'),
-        ('archived', 'Archived')
-        ], 'State', required=True)
-    website = fields.Many2One('nereid.website', 'WebSite')
-    description = fields.Char('Description')
-
     file = fields.Many2One('nereid.static.file', 'File',
-            states={
-                'required': Equal(Eval('type'), 'image')
+        states = {
+            'required': Equal(Eval('type'), 'image')
             })
-    #file = fields.Char('File/Image URL', translate=True,
-            #states={
-                #'required': Equal(Eval('type'), 'image')
-            #})
+    custom_code = fields.Text('Custom Code', translate=True,
+        states={
+            'required': Equal(Eval('type'), 'custom_code')
+            })
+
+    # Presentation related Data
     height = fields.Integer('Height')
     width = fields.Integer('Width')
     alternative_text = fields.Char('Alternative Text')
     click_url = fields.Char('Click URL', translate=True)
-    custom_code = fields.Text('Custom Code', translate=True,
-            states={
-                'required': Equal(Eval('type'), 'custom_code')
-            })
+
+    state = fields.Selection([
+        ('published', 'Published'),
+        ('archived', 'Archived')
+        ], 'State', required=True)
 
 Banner()
+
