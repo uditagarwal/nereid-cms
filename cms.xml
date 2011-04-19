@@ -101,6 +101,8 @@
                   <field name="active"/>
                   <label name="sequence"/>
                   <field name="sequence"/>
+                  <label name="reference"/>
+                  <field name="reference"/>
                   <notebook colspan="4">
                     <page string="Routing" id="routing">
                       <label name="link"/>
@@ -432,6 +434,53 @@
             <field name="perm_create" eval="True"/>
             <field name="perm_delete" eval="True"/>
         </record>
+
+        <record model="ir.ui.view" id="cms_link_view_form">
+            <field name="model">nereid.cms.link</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+              <![CDATA[
+                <form string="Request Link" col="6">
+                    <label name="name"/>
+                    <field name="name"/>
+                    <label name="model"/>
+                    <field name="model"/>
+                    <label name="priority"/>
+                    <field name="priority"/>
+                </form>
+                ]]>
+            </field>
+        </record>
+        <record model="ir.ui.view" id="cms_link_view_tree">
+            <field name="model">nereid.cms.link</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+              <![CDATA[
+                <tree string="CMS Link">
+                    <field name="name" select="1"/>
+                    <field name="model" select="1"/>
+                </tree>
+                ]]>
+            </field>
+        </record>
+        <record model="ir.action.act_window" id="act_cms_link_form">
+            <field name="name">CMS Links</field>
+            <field name="res_model">nereid.cms.link</field>
+        </record>
+        <record model="ir.action.act_window.view"
+            id="act_cms_link_form_view1">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="cms_link_view_tree"/>
+            <field name="act_window" ref="act_cms_link_form"/>
+        </record>
+        <record model="ir.action.act_window.view"
+            id="act_cms_link_form_view2">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="cms_link_view_form"/>
+            <field name="act_window" ref="act_cms_link_form"/>
+        </record>
+        <menuitem parent="menu_nereid_cms" groups="nereid.group_nereid_admin"
+            action="act_cms_link_form" id="menu_cms_link_form"/>
 
     </data>
 </tryton>

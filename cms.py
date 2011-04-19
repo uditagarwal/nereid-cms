@@ -12,6 +12,36 @@ from trytond.model import ModelSQL, ModelView, fields
 from trytond.transaction import Transaction
 
 
+class CMSLink(ModelSQL, ModelView):
+    """CMS link
+
+    (c) 2010 Tryton Project
+    """
+    _name = 'nereid.cms.link'
+    _description = __doc__
+
+    name = fields.Char('Name', required=True, translate=True)
+    model = fields.Selection('models_get', 'Model', required=True)
+    priority = fields.Integer('Priority')
+
+    def __init__(self):
+        super(CMSLink, self).__init__()
+        self._order.insert(0, ('priority', 'ASC'))
+
+    def default_priority(self):
+        return 5
+
+    def models_get(self):
+        model_obj = self.pool.get('ir.model')
+        model_ids = model_obj.search([])
+        res = []
+        for model in model_obj.browse(model_ids):
+            res.append((model.model, model.name))
+        return res
+
+CMSLink()
+
+
 class Menu(ModelSQL, ModelView):
     "Nereid CMS Menu"
     _name = 'nereid.cms.menu'
@@ -167,6 +197,15 @@ class MenuItem(ModelSQL, ModelView):
         string='Child Menu Items')
     active = fields.Boolean('Active')
     sequence = fields.Integer('Sequence', required=True)
+    
+    reference = fields.Reference('Reference', selection='links_get',
+            required=True)
+
+    def links_get(self):
+        cms_link_obj = self.pool.get('nereid.cms.link')
+        ids = cms_link_obj.search([])
+        request_links = cms_link_obj.browse(ids)
+        return [(x.model, x.name) for x in request_links]
 
     def default_active(self):
         return True
@@ -264,6 +303,14 @@ class Article(ModelSQL, ModelView, ModelPagination):
     create_date = fields.DateTime('Created Date')
     published_on = fields.Date('Published On')
     sequence = fields.Integer('Sequence', required=True)
+    reference = fields.Reference('Reference', selection='links_get',
+            required=True)
+
+    def links_get(self):
+        cms_link_obj = self.pool.get('nereid.cms.link')
+        ids = cms_link_obj.search([])
+        request_links = cms_link_obj.browse(ids)
+        return [(x.model, x.name) for x in request_links]
 
     def default_active(self):
         return True
@@ -359,6 +406,14 @@ class Banner(ModelSQL, ModelView):
         ('published', 'Published'),
         ('archived', 'Archived')
         ], 'State', required=True)
+    reference = fields.Reference('Reference', selection='links_get',
+            required=True)
+
+    def links_get(self):
+        cms_link_obj = self.pool.get('nereid.cms.link')
+        ids = cms_link_obj.search([])
+        request_links = cms_link_obj.browse(ids)
+        return [(x.model, x.name) for x in request_links]
 
 Banner()
 
