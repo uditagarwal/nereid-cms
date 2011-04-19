@@ -201,9 +201,8 @@ class MenuItem(ModelSQL, ModelView):
         string='Child Menu Items')
     active = fields.Boolean('Active')
     sequence = fields.Integer('Sequence', required=True)
-    
-    reference = fields.Reference('Reference', selection='links_get',
-            required=True)
+
+    reference = fields.Reference('Reference', selection='links_get',)
 
     def links_get(self):
         cms_link_obj = self.pool.get('nereid.cms.link')
@@ -307,8 +306,7 @@ class Article(ModelSQL, ModelView, ModelPagination):
     create_date = fields.DateTime('Created Date')
     published_on = fields.Date('Published On')
     sequence = fields.Integer('Sequence', required=True)
-    reference = fields.Reference('Reference', selection='links_get',
-            required=True)
+    reference = fields.Reference('Reference', selection='links_get')
 
     def links_get(self):
         cms_link_obj = self.pool.get('nereid.cms.link')
@@ -410,8 +408,7 @@ class Banner(ModelSQL, ModelView):
         ('published', 'Published'),
         ('archived', 'Archived')
         ], 'State', required=True)
-    reference = fields.Reference('Reference', selection='links_get',
-            required=True)
+    reference = fields.Reference('Reference', selection='links_get')
 
     def links_get(self):
         cms_link_obj = self.pool.get('nereid.cms.link')
