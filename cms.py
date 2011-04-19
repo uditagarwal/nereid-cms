@@ -99,6 +99,7 @@ class Menu(ModelSQL, ModelView):
                 'uri' : getattr(menu_item, menu.uri_field.name),
             }
 
+    @cache.memoize_method('nereid.cms.menu.gen_menu_tree', 60 * 60)
     def _generate_menu_tree(self, menu, menu_item):
         """
         :param menu: BrowseRecord of the Menu
@@ -114,8 +115,7 @@ class Menu(ModelSQL, ModelView):
                     self._generate_menu_tree(menu, child))
         return result
 
-    @cache.memoize_method('nereid.cms.menu', 60 * 60)
-    def menu_for(self, identifier, ident_field_value):
+    def menu_for(self, identifier, ident_field_value, objectified=False):
         """
         Returns a dictionary of menu tree
 
@@ -123,6 +123,8 @@ class Menu(ModelSQL, ModelView):
                 has to be chosen
         :param ident_field_value: The value of the field that has to be 
                 looked up on model with search on ident_field
+        :param objectified: The value returned is the browse recod of 
+                the menu identified rather than a tree.
         """
         # First pick up the menu through identifier
         menu_id = self.search(
@@ -146,6 +148,8 @@ class Menu(ModelSQL, ModelView):
             return InternalServerError()
 
         root_menu_item = menu_item_object.browse(menu_item_id[0])
+        if objectified:
+            return root_menu_item
         return self._generate_menu_tree(menu, root_menu_item)
 
     def on_change_name(self, vals):
