@@ -3,7 +3,7 @@
 "Nereid CMS"
 
 from nereid import render_template, current_app, cache
-from nereid.helpers import slugify
+from nereid.helpers import slugify, url_for, key_from_list
 from nereid.backend import ModelPagination
 from werkzeug.exceptions import NotFound, InternalServerError
 
@@ -94,12 +94,17 @@ class Menu(ModelSQL, ModelView):
         :param menu_item: BR of the menu item
         :param menu: BR of the menu set
         """
+        if hasattr(menu_item, 'reference') and getattr(menu_item, 'reference'):
+            model, id = getattr(menu_item, 'reference').split(',')
+            reference = self.pool.get(model).browse(id)
+            uri = url_for('%s.render' % reference._name, uri=reference.uri)
+        else:
+            uri = getattr(menu_item, menu.uri_field.name) 
         return {
                 'name' : getattr(menu_item, menu.title_field.name),
-                'uri' : getattr(menu_item, menu.uri_field.name),
+                'uri' : uri,
             }
 
-    @cache.memoize_method('nereid.cms.menu.gen_menu_tree', 60 * 60)
     def _generate_menu_tree(self, menu, menu_item):
         """
         :param menu: BrowseRecord of the Menu
@@ -150,7 +155,18 @@ class Menu(ModelSQL, ModelView):
         root_menu_item = menu_item_object.browse(menu_item_id[0])
         if objectified:
             return root_menu_item
-        return self._generate_menu_tree(menu, root_menu_item)
+
+        cache_key = key_from_list([
+            Transaction().cursor.dbname,
+            Transaction().user,
+            identifier, ident_field_value,
+            'nereid.cms.menu.menu_for',
+        ])
+        rv = cache.get(cache_key)
+        if rv is None:
+            rv = self._generate_menu_tree(menu, root_menu_item)
+            cache.set(cache_key, rv, 60*60)
+        return rv
 
     def on_change_name(self, vals):
         res = { }
