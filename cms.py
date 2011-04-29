@@ -407,7 +407,8 @@ class Banner(ModelSQL, ModelView):
         ], 'Type', required=True)
     file = fields.Many2One('nereid.static.file', 'File',
         states = {
-            'required': Equal(Eval('type'), 'image')
+            'required': Equal(Eval('type'), 'image'),
+            'invisible': Not(Equal(Eval('type'), 'image'))
             })
     custom_code = fields.Text('Custom Code', translate=True,
         states={
@@ -415,10 +416,22 @@ class Banner(ModelSQL, ModelView):
             })
 
     # Presentation related Data
-    height = fields.Integer('Height')
-    width = fields.Integer('Width')
-    alternative_text = fields.Char('Alternative Text')
-    click_url = fields.Char('Click URL', translate=True)
+    height = fields.Integer('Height', 
+        states = {
+            'invisible': Not(Equal(Eval('type'), 'image'))
+            })
+    width = fields.Integer('Width', 
+        states = {
+            'invisible': Not(Equal(Eval('type'), 'image'))
+            })
+    alternative_text = fields.Char('Alternative Text', 
+        states = {
+            'invisible': Not(Equal(Eval('type'), 'image'))
+            })
+    click_url = fields.Char('Click URL', translate=True, 
+        states = {
+            'invisible': Not(Equal(Eval('type'), 'image'))
+            })
 
     state = fields.Selection([
         ('published', 'Published'),
