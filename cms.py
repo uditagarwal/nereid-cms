@@ -451,8 +451,9 @@ class Banner(ModelSQL, ModelView):
 
     def get_html(self, id):
         """Return the HTML content"""
-        banner = self.read(id, ['type', 'click_url', 'file', 'remote_image_url'
-            'custom_code', 'height', 'width', 'alternative_text', 'click_url'])
+        banner = self.read(id, ['type', 'click_url', 'file', 
+            'remote_image_url', 'custom_code', 'height', 'width', 
+            'alternative_text', 'click_url'])
         if banner['type'] == 'image':
             image = Template(
                 u'<a href="$click_url">'
