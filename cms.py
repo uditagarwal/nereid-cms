@@ -183,7 +183,7 @@ class Menu(ModelSQL, ModelView):
 
         This function is registered with nereid.template.context_processor
         in xml code
-        """Equal
+        """
         return {'menu_for': self.menu_for}
 
 Menu()
