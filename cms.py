@@ -183,7 +183,7 @@ class Menu(ModelSQL, ModelView):
 
         This function is registered with nereid.template.context_processor
         in xml code
-        """
+        """Equal
         return {'menu_for': self.menu_for}
 
 Menu()
@@ -427,19 +427,19 @@ class Banner(ModelSQL, ModelView):
     # Presentation related Data
     height = fields.Integer('Height', 
         states = {
-            'invisible': Not(In(Eval('type'), ('image', 'remote_image')))
+            'invisible': Not(In(Eval('type'), ['image', 'remote_image']))
             })
     width = fields.Integer('Width', 
         states = {
-            'invisible': Not(In(Eval('type'), ('image', 'remote_image')))
+            'invisible': Not(In(Eval('type'), ['image', 'remote_image']))
             })
     alternative_text = fields.Char('Alternative Text', 
         states = {
-            'invisible': Not(In(Eval('type'), ('image', 'remote_image')))
+            'invisible': Not(In(Eval('type'), ['image', 'remote_image']))
             })
     click_url = fields.Char('Click URL', translate=True, 
         states = {
-            'invisible': Not(In(Eval('type'), ('image', 'remote_image')))
+            'invisible': Not(In(Eval('type'), ['image', 'remote_image']))
             })
 
     state = fields.Selection([
