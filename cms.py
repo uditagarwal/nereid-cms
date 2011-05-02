@@ -9,7 +9,7 @@ from nereid.helpers import slugify, url_for, key_from_list
 from nereid.backend import ModelPagination
 from werkzeug.exceptions import NotFound, InternalServerError
 
-from trytond.pyson import Eval, Not, Equal, Bool
+from trytond.pyson import Eval, Not, Equal, Bool, In
 from trytond.model import ModelSQL, ModelView, fields
 from trytond.transaction import Transaction
 
@@ -427,19 +427,19 @@ class Banner(ModelSQL, ModelView):
     # Presentation related Data
     height = fields.Integer('Height', 
         states = {
-            'invisible': Not(Equal(Eval('type'), 'image'))
+            'invisible': Not(In(Eval('type'), ('image', 'remote_image')))
             })
     width = fields.Integer('Width', 
         states = {
-            'invisible': Not(Equal(Eval('type'), 'image'))
+            'invisible': Not(In(Eval('type'), ('image', 'remote_image')))
             })
     alternative_text = fields.Char('Alternative Text', 
         states = {
-            'invisible': Not(Equal(Eval('type'), 'image'))
+            'invisible': Not(In(Eval('type'), ('image', 'remote_image')))
             })
     click_url = fields.Char('Click URL', translate=True, 
         states = {
-            'invisible': Not(Equal(Eval('type'), 'image'))
+            'invisible': Not(In(Eval('type'), ('image', 'remote_image')))
             })
 
     state = fields.Selection([
