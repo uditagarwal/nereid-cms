@@ -2,6 +2,8 @@
 #of this repository contains the full copyright notices and license terms.
 "Nereid CMS"
 
+from string import Template
+
 from nereid import render_template, current_app, cache
 from nereid.helpers import slugify, url_for, key_from_list
 from nereid.backend import ModelPagination
@@ -403,12 +405,18 @@ class Banner(ModelSQL, ModelView):
     # Type related data
     type = fields.Selection([
         ('image', 'Image'),
+        ('remote_image', 'Remote Image'),
         ('custom_code', 'Custom Code'),
         ], 'Type', required=True)
     file = fields.Many2One('nereid.static.file', 'File',
         states = {
             'required': Equal(Eval('type'), 'image'),
             'invisible': Not(Equal(Eval('type'), 'image'))
+            })
+    remote_image_url = fields.Char('Remote Image URL',
+        states = {
+            'required': Equal(Eval('type'), 'remote_image'),
+            'invisible': Not(Equal(Eval('type'), 'remote_image'))
             })
     custom_code = fields.Text('Custom Code', translate=True,
         states={
@@ -439,6 +447,28 @@ class Banner(ModelSQL, ModelView):
         ('archived', 'Archived')
         ], 'State', required=True)
     reference = fields.Reference('Reference', selection='links_get')
+
+
+    def get_html(self, id):
+        """Return the HTML content"""
+        banner = self.read(id, ['type', 'click_url', 'file', 'remote_image_url'
+            'custom_code', 'height', 'width', 'alternative_text', 'click_url'])
+        if banner['type'] == 'image':
+            image = Template(
+                u'<a href="$click_url">'
+                    u'<img src="$file" alt="$alternative_text"'
+                    u' width="$width" height="$height"/>'
+                u'</a>')
+            return image.substitute(**banner)
+        elif banner['type'] == 'remote_image':
+            image = Template(
+                u'<a href="$click_url">'
+                    u'<img src="$remote_image_url" alt="$alternative_text"'
+                    u' width="$width" height="$height"/>'
+                u'</a>')
+            return image.substitute(**banner)
+        elif banner['type'] == 'custom_code':
+            return banner['custom_code']
 
     def links_get(self):
         cms_link_obj = self.pool.get('nereid.cms.link')

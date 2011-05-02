@@ -419,6 +419,8 @@
                             <separator id="sepr_image" string="Image" colspan="4"/>
                             <label name="file" />
                             <field name="file" />
+                            <label name="remote_image_url"/>
+                            <field name="remote_image_url"/>
                             <label name="alternative_text"/>
                             <field name="alternative_text"/>
                             <newline />
