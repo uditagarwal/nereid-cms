@@ -412,7 +412,8 @@ class Banner(ModelSQL, ModelView):
             })
     custom_code = fields.Text('Custom Code', translate=True,
         states={
-            'required': Equal(Eval('type'), 'custom_code')
+            'required': Equal(Eval('type'), 'custom_code'),
+            'invisible': Not(Equal(Eval('type'), 'custom_code'))
             })
 
     # Presentation related Data

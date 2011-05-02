@@ -159,6 +159,24 @@
             parent="menu_nereid_cms_menus"
             action="act_cms_menuitems_form" 
             groups="nereid.group_nereid_admin" />
+            
+        
+        <record model="ir.action.act_window" id="act_cms_menuitems_form_new">
+            <field name="name">New Menuitem</field>
+            <field name="res_model">nereid.cms.menuitem</field>
+            <field name="view_type">form</field>
+        </record>
+        <record model="ir.action.act_window.view" 
+                id="act_cms_menuitems_form_view_new">
+            <field name="sequence" eval="10" />
+            <field name="view" ref="cms_menuitems_view_form" />
+            <field name="act_window" ref="act_cms_menuitems_form_new" />
+        </record>
+        <menuitem name="New Menuitem" sequence="10"
+            id="menu_nereid_cms_menuitems_new" 
+            parent="menu_nereid_cms_menuitems"
+            action="act_cms_menuitems_form_new" 
+            groups="nereid.group_nereid_admin" />
 
         <record model="nereid.template.context_processor" id="ctx_processor_menu">
             <field name="method">nereid.cms.menu.context_processor</field>
@@ -408,6 +426,9 @@
                             <field name="height"/>
                             <label name="width"/>
                             <field name="width"/>
+                            <newline />
+                            <label name="click_url"/>
+                            <field name="click_url"/>
                             <newline />
                             <separator id="sepr_custom" string="Custom Code" colspan="4"/>
                             <field name="custom_code" colspan="4"/>
