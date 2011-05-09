@@ -261,7 +261,8 @@ class ArticleCategory(ModelSQL, ModelView):
 
     title = fields.Char('Title', size=100,
         required=True, on_change=['title', 'unique_name'], select=1)
-    unique_name = fields.Char('Unique Name', required=True, select=1)
+    unique_name = fields.Char('Unique Name', required=True, select=1,
+        help='Unique Name is used as the uri.')
     active = fields.Boolean('Active', select=2)
     description = fields.Text('Description',)
     template = fields.Many2One('nereid.template', 'Template', required=True)
@@ -293,8 +294,8 @@ class ArticleCategory(ModelSQL, ModelView):
         cache_key = 'nereid.article.category.%s' % uri
         category_ids = cache.get(cache_key)
         if not category_ids:
-            category_ids = self.search([('uri', '=', uri)])
-            cache.set(cache_key)
+            category_ids = self.search([('unique_name', '=', uri)])
+            cache.set(cache_key, category_ids, 60*60)
         if not category_ids:
             return NotFound()
 
@@ -371,7 +372,7 @@ class Article(ModelSQL, ModelView, ModelPagination):
         article_ids = cache.get(cache_key)
         if not article_ids:
             article_ids = self.search([('uri', '=', uri)])
-            cache.set(cache_key)
+            cache.set(cache_key, article_ids, 60*60)
         if not article_ids:
             return NotFound()
         article = self.browse(article_ids[0])

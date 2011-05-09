@@ -9,7 +9,7 @@
             <field name="url_map" ref="nereid.default_url_map" />
         </record>          
 
-        <record id="article_category_uri" model="callisto.url_rule">
+        <record id="article_category_uri" model="nereid.url_rule">
             <field name="rule">/article-category/&lt;uri&gt;</field>
             <field name="endpoint">nereid.article.category.render</field>
             <field name="sequence" eval="20" />
