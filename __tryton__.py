@@ -12,6 +12,7 @@
     ],
     'xml': [
         'cms.xml',
+        'urls.xml',
     ],
     'translation': [
     ],
