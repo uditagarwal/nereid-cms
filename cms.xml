@@ -63,7 +63,6 @@
         <record model="ir.action.act_window" id="act_cms_menus_form">
             <field name="name">CMS Menus</field>
             <field name="res_model">nereid.cms.menu</field>
-            <field name="view_type">form</field>
         </record>
         <record model="ir.action.act_window.view" id="act_cms_menus_form_view1">
             <field name="sequence" eval="10" />
@@ -154,7 +153,6 @@
         <record model="ir.action.act_window" id="act_cms_menuitems_tree">
             <field name="name">CMS Menuitems</field>
             <field name="res_model">nereid.cms.menuitem</field>
-            <field name="view_type">tree</field>
             <field name="domain">[('parent', '=', False)]</field>
         </record>
         <record model="ir.action.act_window.view" id="act_cms_menuitems_tree_view1">
@@ -168,7 +166,6 @@
         <record model="ir.action.act_window" id="act_cms_menuitems_form">
             <field name="name">CMS Menuitems</field>
             <field name="res_model">nereid.cms.menuitem</field>
-            <field name="view_type">form</field>
         </record>
         <record model="ir.action.act_window.view" 
                 id="act_cms_menuitems_form_view1">
@@ -192,7 +189,6 @@
         <record model="ir.action.act_window" id="act_cms_menuitems_form_new">
             <field name="name">New Menuitem</field>
             <field name="res_model">nereid.cms.menuitem</field>
-            <field name="view_type">form</field>
         </record>
         <record model="ir.action.act_window.view" 
                 id="act_cms_menuitems_form_view_new">
@@ -256,7 +252,6 @@
         <record model="ir.action.act_window" id="action_cms_article_category">
             <field name="name">CMS Article Categories</field>
             <field name="res_model">nereid.article.category</field>
-            <field name="view_type">form</field>
         </record>
         <record model="ir.action.act_window.view" 
                 id="act_cms_article_category_form_view1">
@@ -347,7 +342,6 @@
         <record model="ir.action.act_window" id="action_cms_articles">
             <field name="name">CMS Articles</field>
             <field name="res_model">nereid.cms.article</field>
-            <field name="view_type">form</field>
         </record>
         <record model="ir.action.act_window.view" 
                 id="act_cms_articles_form_view1">
@@ -407,7 +401,6 @@
         <record model="ir.action.act_window" id="action_cms_banner_category">
             <field name="name">CMS Banner Categories</field>
             <field name="res_model">nereid.cms.banner.category</field>
-            <field name="view_type">form</field>
         </record>
         <record model="ir.action.act_window.view" 
                 id="act_cms_banner_category_form_view1">
@@ -490,7 +483,6 @@
         <record model="ir.action.act_window" id="action_cms_banners">
             <field name="name">CMS Banners</field>
             <field name="res_model">nereid.cms.banner</field>
-            <field name="view_type">form</field>
         </record>
         <record model="ir.action.act_window.view" 
                 id="act_cms_banners_form_view1">
