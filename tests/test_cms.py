@@ -69,14 +69,14 @@ class TestCMS(unittest.TestCase):
         "Successful rendering of an article_category page"
         app = self.get_app()
         with app.test_client() as c:
-            response = c.get('/article-category/test-categ')
+            response = c.get('/en_US/article-category/test-categ')
             self.assertEqual(response.status_code, 200)
         
     def test_0020_article(self):
         "Successful rendering of an article page"
         app = self.get_app()
         with app.test_client() as c:
-            response = c.get('/article/test-article')
+            response = c.get('/en_US/article/test-article')
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.data,
                 ''' Here is a test article. 
