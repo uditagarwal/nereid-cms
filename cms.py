@@ -250,6 +250,21 @@ class MenuItem(ModelSQL, ModelView):
             res['unique_name'] = slugify(vals['title'])
         return res
 
+    def get_rec_name(self, ids, name):
+        if not ids:
+            return {}
+        res = {}
+        def _name(menuitem):
+            if menuitem.id in res:
+                return res[menuitem.id]
+            elif menuitem.parent:
+                return _name(menuitem.parent) + ' / ' + menuitem.title
+            else:
+                return menuitem.title
+        for menuitem in self.browse(ids):
+            res[menuitem.id] = _name(menuitem)
+        return res
+
 MenuItem()
 
 
