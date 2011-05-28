@@ -161,6 +161,7 @@ class Menu(ModelSQL, ModelView):
         cache_key = key_from_list([
             Transaction().cursor.dbname,
             Transaction().user,
+            Transaction().language,
             identifier, ident_field_value,
             'nereid.cms.menu.menu_for',
         ])
@@ -306,7 +307,8 @@ class ArticleCategory(ModelSQL, ModelView):
         """
         article_obj = self.pool.get('nereid.cms.article')
         # Find in cache or load from DB
-        cache_key = 'nereid.article.category.%s' % uri
+        cache_key = 'nereid.article.category.%s.%s' % (
+            uri, Transaction().language)
         category_ids = cache.get(cache_key)
         if not category_ids:
             category_ids = self.search([('unique_name', '=', uri)])
@@ -383,7 +385,7 @@ class Article(ModelSQL, ModelView, ModelPagination):
         Renders the template
         """
         # Find in cache or load from DB
-        cache_key = 'nereid.cms.article.%s' % uri
+        cache_key = 'nereid.cms.article.%s.%s' % (uri, Transaction().language)
         article_ids = cache.get(cache_key)
         if not article_ids:
             article_ids = self.search([('uri', '=', uri)])
