@@ -328,6 +328,7 @@ class Article(ModelSQL, ModelView, ModelPagination):
     "CMS Articles"
     _name = 'nereid.cms.article'
     _description = __doc__
+    _rec_name = 'uri'
 
     uri = fields.Char('URI', required=True, select=True, translate=True)
     title = fields.Char('Title', required=True, 
