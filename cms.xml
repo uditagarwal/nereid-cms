@@ -158,9 +158,15 @@
             <field name="domain">[('parent', '=', False)]</field>
         </record>
         <record model="ir.action.act_window.view" id="act_cms_menuitems_tree_view1">
-            <field name="sequence" eval="30"/>
+            <field name="sequence" eval="10"/>
             <field name="view" ref="cms_menuitems_view_tree2"/>
             <field name="act_window" ref="act_cms_menuitems_tree"/>
+        </record>
+        <record model="ir.action.act_window.view" 
+                id="act_cms_menuitems_tree_view2">
+            <field name="sequence" eval="20" />
+            <field name="view" ref="cms_menuitems_view_form" />
+            <field name="act_window" ref="act_cms_menuitems_tree" />
         </record>
         <menuitem parent="menu_nereid_cms_menus" sequence="20"
             action="act_cms_menuitems_tree" id="menu_cms_menuitems_tree"/>
