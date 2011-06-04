@@ -362,6 +362,10 @@
             name="Articles" parent="menu_cms_articles"
             groups="nereid.group_nereid_admin" />
 
+        <record model="nereid.template.context_processor" id="ctx_processor_article_category">
+            <field name="method">nereid.cms.article.category.context_processor</field>
+        </record>
+
         <!-- Banners -->
         <menuitem id="menu_cms_banners" name="Banners" 
             parent="menu_nereid_cms"
@@ -503,12 +507,17 @@
             name="Banners" parent="menu_cms_banners"
             groups="nereid.group_nereid_admin" />
 
+        <record model="nereid.template.context_processor" id="ctx_processor_banner_category">
+            <field name="method">nereid.cms.banner.category.context_processor</field>
+        </record>
+
+        <!-- CMS link -->
         <record model="ir.ui.view" id="cms_link_view_form">
             <field name="model">nereid.cms.link</field>
             <field name="type">form</field>
             <field name="arch" type="xml">
               <![CDATA[
-                <form string="Request Link" col="6">
+                <form string="CMS Link" col="6">
                     <label name="name"/>
                     <field name="name"/>
                     <label name="model"/>
