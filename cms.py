@@ -4,9 +4,8 @@
 
 from string import Template
 
-from nereid import render_template, current_app, cache
-from nereid.helpers import slugify, url_for, key_from_list
-from nereid.backend import ModelPagination
+from nereid import render_template, current_app, cache, request
+from nereid.helpers import slugify, url_for, key_from_list, Pagination
 from werkzeug.exceptions import NotFound, InternalServerError
 
 from trytond.pyson import Eval, Not, Equal, Bool, In
@@ -273,7 +272,9 @@ class ArticleCategory(ModelSQL, ModelView):
     "Article Categories"
     _name = 'nereid.article.category'
     _description = __doc__
-    _rec_name = 'unique_name'
+    _rec_name = 'title'
+
+    per_page = 10
 
     title = fields.Char('Title', size=100,
         required=True, on_change=['title', 'unique_name'], select=1)
@@ -317,22 +318,40 @@ class ArticleCategory(ModelSQL, ModelView):
             return NotFound()
 
         category = self.browse(category_ids[0])
-        articles = article_obj.paginate([('category', '=', category.id)], page)
+        articles = Pagination(self, [('category', '=', category.id)], 
+            page, self.per_page)
         return render_template(
             category.template.name, category=category, articles=articles)
+
+    def get_article_category(self, uri, silent):
+        """Returns the browse record of the article category given by uri
+        """
+        category = self.search([('unique_name', '=', uri)], limit=1)
+        if not category and not silent:
+            raise RuntimeError("Article category %s not found" % uri)
+        return self.browse(category[0]) if category else None
+
+    def context_processor(self):
+        """This function will be called by nereid to update
+        the template context. Must return a dictionary that the context
+        will be updated with.
+
+        This function is registered with nereid.template.context_processor
+        in xml code
+        """
+        return {'get_article_category': self.get_article_category}
 
 ArticleCategory()
 
 
-class Article(ModelSQL, ModelView, ModelPagination):
+class Article(ModelSQL, ModelView):
     "CMS Articles"
     _name = 'nereid.cms.article'
     _description = __doc__
     _rec_name = 'uri'
 
-    uri = fields.Char('URI', required=True, select=True, translate=True)
-    title = fields.Char('Title', required=True, 
-        select=True, translate=True, )#on_change=['title'])
+    uri = fields.Char('URI', required=True, select=1, translate=True)
+    title = fields.Char('Title', required=True, select=1, translate=True)
     content = fields.Text('Content', required=True, translate=True)
     template = fields.Many2One('nereid.template', 'Template', required=True)
     active = fields.Boolean('Active')
@@ -407,6 +426,27 @@ class BannerCategory(ModelSQL, ModelView):
     name = fields.Char('Name', required=True)
     banners = fields.One2Many('nereid.cms.banner', 'category', 'Banners')
     website = fields.Many2One('nereid.website', 'WebSite')
+
+    def get_article_category(self, uri, silent):
+        """Returns the browse record of the article category given by uri
+        """
+        category = self.search([
+            ('unique_name', '=', uri), 
+            ('website', '=', request.nereid_website.id)
+            ], limit=1)
+        if not category and not silent:
+            raise RuntimeError("Banner category %s not found" % uri)
+        return self.browse(category[0]) if category else None
+
+    def context_processor(self):
+        """This function will be called by nereid to update
+        the template context. Must return a dictionary that the context
+        will be updated with.
+
+        This function is registered with nereid.template.context_processor
+        in xml code
+        """
+        return {'get_banner_category': self.get_banner_category}
 
 BannerCategory()
 
