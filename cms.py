@@ -308,7 +308,7 @@ class ArticleCategory(ModelSQL, ModelView):
         """
         article_obj = self.pool.get('nereid.cms.article')
         # Find in cache or load from DB
-        cache_key = 'nereid.article.category.%s.%s' % (
+        cache_key = 'nereid.cms.article.category.%s.%s' % (
             uri, Transaction().language)
         category_ids = cache.get(cache_key)
         if not category_ids:
@@ -355,7 +355,7 @@ class Article(ModelSQL, ModelView):
     content = fields.Text('Content', required=True, translate=True)
     template = fields.Many2One('nereid.template', 'Template', required=True)
     active = fields.Boolean('Active')
-    category = fields.Many2One('nereid.article.category', 'Category',
+    category = fields.Many2One('nereid.cms.article.category', 'Category',
         required=True)
     image = fields.Many2One('nereid.static.file', 'Image')
     author = fields.Many2One('company.employee', 'Author')
