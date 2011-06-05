@@ -220,7 +220,7 @@
             groups="nereid.group_nereid_admin" />
 
         <record model="ir.ui.view" id="cms_article_categ_view_form">
-            <field name="model">nereid.article.category</field>
+            <field name="model">nereid.cms.article.category</field>
             <field name="type">form</field>
             <field name="arch" type="xml">
                 <![CDATA[
@@ -244,7 +244,7 @@
         </record>
 
          <record model="ir.ui.view" id="cms_article_categ_view_tree">
-            <field name="model">nereid.article.category</field>
+            <field name="model">nereid.cms.article.category</field>
             <field name="type">tree</field>
             <field name="arch" type="xml">
                 <![CDATA[
@@ -259,7 +259,7 @@
 
         <record model="ir.action.act_window" id="action_cms_article_category">
             <field name="name">CMS Article Categories</field>
-            <field name="res_model">nereid.article.category</field>
+            <field name="res_model">nereid.cms.article.category</field>
         </record>
         <record model="ir.action.act_window.view" 
                 id="act_cms_article_category_form_view1">
