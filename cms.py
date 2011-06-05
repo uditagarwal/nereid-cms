@@ -323,7 +323,7 @@ class ArticleCategory(ModelSQL, ModelView):
         return render_template(
             category.template.name, category=category, articles=articles)
 
-    def get_article_category(self, uri, silent):
+    def get_article_category(self, uri, silent=True):
         """Returns the browse record of the article category given by uri
         """
         category = self.search([('unique_name', '=', uri)], limit=1)
@@ -427,11 +427,11 @@ class BannerCategory(ModelSQL, ModelView):
     banners = fields.One2Many('nereid.cms.banner', 'category', 'Banners')
     website = fields.Many2One('nereid.website', 'WebSite')
 
-    def get_banner_category(self, uri, silent):
+    def get_banner_category(self, uri, silent=True):
         """Returns the browse record of the article category given by uri
         """
         category = self.search([
-            ('unique_name', '=', uri), 
+            ('name', '=', uri), 
             ('website', '=', request.nereid_website.id)
             ], limit=1)
         if not category and not silent:
