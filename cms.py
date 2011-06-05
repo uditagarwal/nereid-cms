@@ -427,7 +427,7 @@ class BannerCategory(ModelSQL, ModelView):
     banners = fields.One2Many('nereid.cms.banner', 'category', 'Banners')
     website = fields.Many2One('nereid.website', 'WebSite')
 
-    def get_article_category(self, uri, silent):
+    def get_banner_category(self, uri, silent):
         """Returns the browse record of the article category given by uri
         """
         category = self.search([
