@@ -270,7 +270,7 @@ MenuItem()
 
 class ArticleCategory(ModelSQL, ModelView):
     "Article Categories"
-    _name = 'nereid.article.category'
+    _name = 'nereid.cms.article.category'
     _description = __doc__
     _rec_name = 'title'
 
