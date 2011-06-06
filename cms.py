@@ -318,7 +318,7 @@ class ArticleCategory(ModelSQL, ModelView):
             return NotFound()
 
         category = self.browse(category_ids[0])
-        articles = Pagination(self, [('category', '=', category.id)], 
+        articles = Pagination(article_obj, [('category', '=', category.id)], 
             page, self.per_page)
         return render_template(
             category.template.name, category=category, articles=articles)
