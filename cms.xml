@@ -317,9 +317,6 @@
                             <label name="author" />
                             <field name="author" />
                             <newline/>
-                            <label name="create_date" />
-                            <field name="create_date" />
-                            <newline/>
                             <label name="published_on" />
                             <field name="published_on" />
                         </group>

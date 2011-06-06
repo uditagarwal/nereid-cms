@@ -359,7 +359,6 @@ class Article(ModelSQL, ModelView):
         required=True)
     image = fields.Many2One('nereid.static.file', 'Image')
     author = fields.Many2One('company.employee', 'Author')
-    create_date = fields.DateTime('Created Date')
     published_on = fields.Date('Published On')
     sequence = fields.Integer('Sequence', required=True)
     reference = fields.Reference('Reference', selection='links_get')
