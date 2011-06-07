@@ -306,7 +306,7 @@
                             string="Content" 
                             id="sepr_body"/>
                         <separator 
-                            colspan="1" 
+                            colspan="2" 
                             string="Parameters" 
                             id="sepr_params"/>
                         <field name="content" colspan="4" />
@@ -319,6 +319,13 @@
                             <newline/>
                             <label name="published_on" />
                             <field name="published_on" />
+                            <newline/>
+                            <separator 
+                                colspan="2" 
+                                string="Short Description" 
+                                id="sepr_description"/>
+                            <newline/>
+                            <field name="description" colspan="2"/>
                         </group>
                     </form>
                 ]]>

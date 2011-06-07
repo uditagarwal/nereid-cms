@@ -362,6 +362,7 @@ class Article(ModelSQL, ModelView):
     published_on = fields.Date('Published On')
     sequence = fields.Integer('Sequence', required=True)
     reference = fields.Reference('Reference', selection='links_get')
+    description = fields.Text('Short Description')
 
     def links_get(self):
         cms_link_obj = self.pool.get('nereid.cms.link')
