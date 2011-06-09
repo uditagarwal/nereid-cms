@@ -220,6 +220,10 @@ class MenuItem(ModelSQL, ModelView):
     sequence = fields.Integer('Sequence', required=True)
 
     reference = fields.Reference('Reference', selection='links_get',)
+    
+    def get_full_url(self, ids, names):
+        #TODO
+        return ''
 
     def links_get(self):
         cms_link_obj = self.pool.get('nereid.cms.link')
