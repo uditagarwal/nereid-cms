@@ -131,10 +131,10 @@
             <field name="arch" type="xml">
             <![CDATA[
                 <tree string="CMS Menuitems">
-                    <field name="title"/>
-                    <field name="unique_name"/>
-                    <field name="link"/>
-                    <field name="active"/>
+                    <field name="title" select="1"/>
+                    <field name="unique_name" select="1"/>
+                    <field name="link" select="2"/>
+                    <field name="active" select="2"/>
                 </tree>
             ]]>
             </field>
