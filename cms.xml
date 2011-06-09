@@ -206,7 +206,7 @@
         </record>
         <menuitem name="New Menuitem" sequence="10"
             id="menu_nereid_cms_menuitems_new" 
-            parent="menu_nereid_cms_menuitems"
+            parent="menu_cms_menuitems_tree"
             action="act_cms_menuitems_form_new" 
             groups="nereid.group_nereid_admin" />
 
