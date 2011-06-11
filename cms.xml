@@ -133,6 +133,7 @@
                 <tree string="CMS Menuitems">
                     <field name="title" select="1"/>
                     <field name="unique_name" select="1"/>
+                    <field name="rec_name" select="2"/>
                     <field name="link" select="2"/>
                     <field name="active" select="2"/>
                 </tree>
