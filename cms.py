@@ -196,9 +196,9 @@ class MenuItem(ModelSQL, ModelView):
     _rec_name = 'unique_name'
 
     title = fields.Char('Title', required=True, 
-        on_change=['title', 'unique_name'])
-    unique_name = fields.Char('Unique Name', required=True)
-    link = fields.Char('Link')
+        on_change=['title', 'unique_name'], select=1)
+    unique_name = fields.Char('Unique Name', required=True, select=1)
+    link = fields.Char('Link', select=2)
     use_url_builder = fields.Boolean('Use URL Builder'),
     url_for_build = fields.Many2One('nereid.url_rule', 'Rule',
         depends=['use_url_builder'],
