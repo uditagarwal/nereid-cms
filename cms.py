@@ -464,6 +464,7 @@ class Banner(ModelSQL, ModelView):
     description = fields.Char('Description')
     category = fields.Many2One('nereid.cms.banner.category', 'Category', 
         required=True)
+    sequence = fields.Integer('Sequence')
 
     # Type related data
     type = fields.Selection([
