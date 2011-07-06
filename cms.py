@@ -511,6 +511,10 @@ class Banner(ModelSQL, ModelView):
         ], 'State', required=True)
     reference = fields.Reference('Reference', selection='links_get')
 
+    def __init__(self):
+        super(Banner, self).__init__()
+        self._order.insert(0, ('sequence', 'ASC'))
+
 
     def get_html(self, id):
         """Return the HTML content"""
