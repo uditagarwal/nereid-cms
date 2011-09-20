@@ -5,7 +5,8 @@
 from string import Template
 
 from nereid import render_template, current_app, cache, request
-from nereid.helpers import slugify, url_for, key_from_list, Pagination
+from nereid.helpers import slugify, url_for, key_from_list, Pagination, \
+        SitemapIndex, SitemapSection
 from werkzeug.exceptions import NotFound, InternalServerError
 
 from trytond.pyson import Eval, Not, Equal, Bool, In
@@ -345,6 +346,20 @@ class ArticleCategory(ModelSQL, ModelView):
         """
         return {'get_article_category': self.get_article_category}
 
+    def sitemap_index(self):
+        index = SitemapIndex(self, [])
+        return index.render()
+
+    def sitemap(self, page):
+        sitemap_section = SitemapSection(self, [], page)
+        sitemap_section.changefreq = 'daily'
+        return sitemap_section.render()
+
+    def get_absolute_url(self, category, **kwargs):
+        return url_for(
+            'nereid.cms.article.category.render', uri=category.uri, **kwargs
+        )
+
 ArticleCategory()
 
 
@@ -418,6 +433,20 @@ class Article(ModelSQL, ModelView):
             return NotFound()
         article = self.browse(article_ids[0])
         return render_template(article.template.name, article=article)
+
+    def sitemap_index(self):
+        index = SitemapIndex(self, [])
+        return index.render()
+
+    def sitemap(self, page):
+        sitemap_section = SitemapSection(self, [], page)
+        sitemap_section.changefreq = 'daily'
+        return sitemap_section.render()
+
+    def get_absolute_url(self, article, **kwargs):
+        return url_for(
+            'nereid.cms.article.render', uri=article.uri, **kwargs
+        )
 
 Article()
 
@@ -546,4 +575,3 @@ class Banner(ModelSQL, ModelView):
         return [(x.model, x.name) for x in request_links]
 
 Banner()
-
