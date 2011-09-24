@@ -234,6 +234,8 @@
                         <field name="active" />
                         <label name="template" />
                         <field name="template" />
+                        <label name="banner" />
+                        <field name="banner" />
                         <separator 
                             colspan="4" 
                             string="Description" 
@@ -320,6 +322,9 @@
                             <newline/>
                             <label name="published_on" />
                             <field name="published_on" />
+                            <newline/>
+                            <label name="banner" />
+                            <field name="banner" />
                             <newline/>
                             <separator 
                                 colspan="2" 

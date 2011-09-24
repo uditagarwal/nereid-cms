@@ -290,6 +290,9 @@ class ArticleCategory(ModelSQL, ModelView):
     template = fields.Many2One('nereid.template', 'Template', required=True)
     articles = fields.One2Many('nereid.cms.article', 'category', 'Articles')
 
+    # Article Category can have a banner
+    banner = fields.Many2One('nereid.cms.banner', 'Banner')
+
     def default_active(self):
         'Return True' 
         return True
@@ -382,6 +385,9 @@ class Article(ModelSQL, ModelView):
     sequence = fields.Integer('Sequence', required=True)
     reference = fields.Reference('Reference', selection='links_get')
     description = fields.Text('Short Description')
+
+    # Article can have a banner
+    banner = fields.Many2One('nereid.cms.banner', 'Banner')
 
     def links_get(self):
         cms_link_obj = self.pool.get('nereid.cms.link')
