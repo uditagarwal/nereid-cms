@@ -98,7 +98,7 @@ class Menu(ModelSQL, ModelView):
         """
         if hasattr(menu_item, 'reference') and getattr(menu_item, 'reference'):
             model, id = getattr(menu_item, 'reference').split(',')
-            if id:
+            if int(id):
                 reference = self.pool.get(model).browse(int(id))
                 uri = url_for('%s.render' % reference._name, uri=reference.uri)
             else:
