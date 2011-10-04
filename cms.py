@@ -200,7 +200,7 @@ class MenuItem(ModelSQL, ModelView):
     _rec_name = 'unique_name'
 
     title = fields.Char('Title', required=True, 
-        on_change=['title', 'unique_name'], select=1)
+        on_change=['title', 'unique_name'], select=1, translate=True)
     unique_name = fields.Char('Unique Name', required=True, select=1)
     link = fields.Char('Link', select=2)
     use_url_builder = fields.Boolean('Use URL Builder'),
