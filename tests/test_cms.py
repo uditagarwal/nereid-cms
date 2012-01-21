@@ -20,7 +20,7 @@ class TestCMS(unittest.TestCase):
     def setUpClass(cls):
         testing_proxy.install_module('nereid_cms')
 
-        article_categ_obj = testing_proxy.pool.get('nereid.article.category')
+        article_categ_obj = testing_proxy.pool.get('nereid.cms.article.category')
         article_obj = testing_proxy.pool.get('nereid.cms.article')
 
         with Transaction().start(testing_proxy.db_name, 1, None) as txn:
