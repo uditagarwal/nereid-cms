@@ -2,7 +2,7 @@
 #this repository contains the full copyright notices and license terms.
 {
     'name': 'Nereid CMS',
-    'version': '2.0.0.2',
+    'version': '2.0.0.3',
     'author': '''Open Labs Business Solutions, 
         Openlabs Technologies & Consulting (P) Ltd.''',
     'email': 'info@openlabs.co.in',
