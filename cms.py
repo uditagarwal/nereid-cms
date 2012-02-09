@@ -284,6 +284,8 @@ class BannerCategory(ModelSQL, ModelView):
     name = fields.Char('Name', required=True)
     banners = fields.One2Many('nereid.cms.banner', 'category', 'Banners')
     website = fields.Many2One('nereid.website', 'WebSite')
+    published_banners = fields.Function(fields.One2Many('nereid.cms.banner',
+        'category', 'Published Banners'), 'get_published_banners')
 
     def get_banner_category(self, uri, silent=True):
         """Returns the browse record of the article category given by uri
@@ -305,6 +307,22 @@ class BannerCategory(ModelSQL, ModelView):
         in xml code
         """
         return {'get_banner_category': self.get_banner_category}
+
+    def get_published_banners(self, ids, name):
+        """
+        Get the published banners.
+        """
+        res = {}
+        nereid_banner_obj = self.pool.get('nereid.cms.banner')
+        for category in self.browse(ids):
+            res[category.id]=[]
+            banners = nereid_banner_obj.search([
+                ('state', '=', 'published'),
+                ('category', '=', category)
+            ])
+            for banner in nereid_banner_obj.browse(banners):
+                res[category.id].append(banner.id)
+        return res
 
 BannerCategory()
 
