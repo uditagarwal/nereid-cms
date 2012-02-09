@@ -2,3 +2,4 @@
 #this repository contains the full copyright notices and license terms.
 
 from test_cms import *
+from test_banner import *
