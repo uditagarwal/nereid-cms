@@ -51,7 +51,8 @@ class Menu(ModelSQL, ModelView):
 
     name = fields.Char('Name', required=True, 
         on_change=['name', 'unique_identifier'])
-    unique_identifier = fields.Char('Unique Identifier', required=True,)
+    unique_identifier = fields.Char('Unique Identifier', required=True, 
+        select=1)
     description = fields.Text('Description')
     website = fields.Many2One('nereid.website', 'WebSite')
     active = fields.Boolean('Active')
@@ -221,7 +222,7 @@ class MenuItem(ModelSQL, ModelView):
     child = fields.One2Many('nereid.cms.menuitem', 'parent',
         string='Child Menu Items')
     active = fields.Boolean('Active')
-    sequence = fields.Integer('Sequence', required=True)
+    sequence = fields.Integer('Sequence', required=True, select=1)
 
     reference = fields.Reference('Reference', selection='links_get',)
     
@@ -281,9 +282,9 @@ class BannerCategory(ModelSQL, ModelView):
     _name = 'nereid.cms.banner.category'
     _description = __doc__
 
-    name = fields.Char('Name', required=True)
+    name = fields.Char('Name', required=True, select=1)
     banners = fields.One2Many('nereid.cms.banner', 'category', 'Banners')
-    website = fields.Many2One('nereid.website', 'WebSite')
+    website = fields.Many2One('nereid.website', 'WebSite', select=1)
     published_banners = fields.Function(fields.One2Many('nereid.cms.banner',
         'category', 'Published Banners'), 'get_published_banners')
 
@@ -332,11 +333,11 @@ class Banner(ModelSQL, ModelView):
     _name = 'nereid.cms.banner'
     _description = __doc__
 
-    name = fields.Char('Name', required=True)
+    name = fields.Char('Name', required=True, select=1)
     description = fields.Char('Description')
     category = fields.Many2One('nereid.cms.banner.category', 'Category', 
-        required=True)
-    sequence = fields.Integer('Sequence')
+        required=True, select=1)
+    sequence = fields.Integer('Sequence', select=1)
 
     # Type related data
     type = fields.Selection([
@@ -381,7 +382,7 @@ class Banner(ModelSQL, ModelView):
     state = fields.Selection([
         ('published', 'Published'),
         ('archived', 'Archived')
-        ], 'State', required=True)
+        ], 'State', required=True, select=1)
     reference = fields.Reference('Reference', selection='links_get')
 
     def __init__(self):
@@ -523,13 +524,13 @@ class Article(ModelSQL, ModelView):
     title = fields.Char('Title', required=True, select=1, translate=True)
     content = fields.Text('Content', required=True, translate=True)
     template = fields.Many2One('nereid.template', 'Template', required=True)
-    active = fields.Boolean('Active')
+    active = fields.Boolean('Active', select=1)
     category = fields.Many2One('nereid.cms.article.category', 'Category',
-        required=True)
+        required=True, select=1)
     image = fields.Many2One('nereid.static.file', 'Image')
     author = fields.Many2One('company.employee', 'Author')
     published_on = fields.Date('Published On')
-    sequence = fields.Integer('Sequence', required=True)
+    sequence = fields.Integer('Sequence', required=True, select=1)
     reference = fields.Reference('Reference', selection='links_get')
     description = fields.Text('Short Description')
 
