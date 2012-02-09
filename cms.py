@@ -51,7 +51,8 @@ class Menu(ModelSQL, ModelView):
 
     name = fields.Char('Name', required=True, 
         on_change=['name', 'unique_identifier'])
-    unique_identifier = fields.Char('Unique Identifier', required=True,)
+    unique_identifier = fields.Char('Unique Identifier', required=True, 
+        select=1)
     description = fields.Text('Description')
     website = fields.Many2One('nereid.website', 'WebSite')
     active = fields.Boolean('Active')
@@ -221,7 +222,7 @@ class MenuItem(ModelSQL, ModelView):
     child = fields.One2Many('nereid.cms.menuitem', 'parent',
         string='Child Menu Items')
     active = fields.Boolean('Active')
-    sequence = fields.Integer('Sequence', required=True)
+    sequence = fields.Integer('Sequence', required=True, select=1)
 
     reference = fields.Reference('Reference', selection='links_get',)
     
@@ -274,6 +275,150 @@ class MenuItem(ModelSQL, ModelView):
         return res
 
 MenuItem()
+
+
+class BannerCategory(ModelSQL, ModelView):
+    """Collection of related Banners"""
+    _name = 'nereid.cms.banner.category'
+    _description = __doc__
+
+    name = fields.Char('Name', required=True, select=1)
+    banners = fields.One2Many('nereid.cms.banner', 'category', 'Banners')
+    website = fields.Many2One('nereid.website', 'WebSite', select=1)
+    published_banners = fields.Function(fields.One2Many('nereid.cms.banner',
+        'category', 'Published Banners'), 'get_published_banners')
+
+    def get_banner_category(self, uri, silent=True):
+        """Returns the browse record of the article category given by uri
+        """
+        category = self.search([
+            ('name', '=', uri), 
+            ('website', '=', request.nereid_website.id)
+            ], limit=1)
+        if not category and not silent:
+            raise RuntimeError("Banner category %s not found" % uri)
+        return self.browse(category[0]) if category else None
+
+    def context_processor(self):
+        """This function will be called by nereid to update
+        the template context. Must return a dictionary that the context
+        will be updated with.
+
+        This function is registered with nereid.template.context_processor
+        in xml code
+        """
+        return {'get_banner_category': self.get_banner_category}
+
+    def get_published_banners(self, ids, name):
+        """
+        Get the published banners.
+        """
+        res = {}
+        nereid_banner_obj = self.pool.get('nereid.cms.banner')
+        for category in self.browse(ids):
+            res[category.id]=[]
+            banners = nereid_banner_obj.search([
+                ('state', '=', 'published'),
+                ('category', '=', category)
+            ])
+            for banner in nereid_banner_obj.browse(banners):
+                res[category.id].append(banner.id)
+        return res
+
+BannerCategory()
+
+
+class Banner(ModelSQL, ModelView):
+    """Banner for CMS."""
+    _name = 'nereid.cms.banner'
+    _description = __doc__
+
+    name = fields.Char('Name', required=True, select=1)
+    description = fields.Char('Description')
+    category = fields.Many2One('nereid.cms.banner.category', 'Category', 
+        required=True, select=1)
+    sequence = fields.Integer('Sequence', select=1)
+
+    # Type related data
+    type = fields.Selection([
+        ('image', 'Image'),
+        ('remote_image', 'Remote Image'),
+        ('custom_code', 'Custom Code'),
+        ], 'Type', required=True)
+    file = fields.Many2One('nereid.static.file', 'File',
+        states = {
+            'required': Equal(Eval('type'), 'image'),
+            'invisible': Not(Equal(Eval('type'), 'image'))
+            })
+    remote_image_url = fields.Char('Remote Image URL',
+        states = {
+            'required': Equal(Eval('type'), 'remote_image'),
+            'invisible': Not(Equal(Eval('type'), 'remote_image'))
+            })
+    custom_code = fields.Text('Custom Code', translate=True,
+        states={
+            'required': Equal(Eval('type'), 'custom_code'),
+            'invisible': Not(Equal(Eval('type'), 'custom_code'))
+            })
+
+    # Presentation related Data
+    height = fields.Integer('Height', 
+        states = {
+            'invisible': Not(In(Eval('type'), ['image', 'remote_image']))
+            })
+    width = fields.Integer('Width', 
+        states = {
+            'invisible': Not(In(Eval('type'), ['image', 'remote_image']))
+            })
+    alternative_text = fields.Char('Alternative Text', 
+        states = {
+            'invisible': Not(In(Eval('type'), ['image', 'remote_image']))
+            })
+    click_url = fields.Char('Click URL', translate=True, 
+        states = {
+            'invisible': Not(In(Eval('type'), ['image', 'remote_image']))
+            })
+
+    state = fields.Selection([
+        ('published', 'Published'),
+        ('archived', 'Archived')
+        ], 'State', required=True, select=1)
+    reference = fields.Reference('Reference', selection='links_get')
+
+    def __init__(self):
+        super(Banner, self).__init__()
+        self._order.insert(0, ('sequence', 'ASC'))
+
+
+    def get_html(self, id):
+        """Return the HTML content"""
+        banner = self.read(id, ['type', 'click_url', 'file', 
+            'remote_image_url', 'custom_code', 'height', 'width', 
+            'alternative_text', 'click_url'])
+        if banner['type'] == 'image':
+            image = Template(
+                u'<a href="$click_url">'
+                    u'<img src="$file" alt="$alternative_text"'
+                    u' width="$width" height="$height"/>'
+                u'</a>')
+            return image.substitute(**banner)
+        elif banner['type'] == 'remote_image':
+            image = Template(
+                u'<a href="$click_url">'
+                    u'<img src="$remote_image_url" alt="$alternative_text"'
+                    u' width="$width" height="$height"/>'
+                u'</a>')
+            return image.substitute(**banner)
+        elif banner['type'] == 'custom_code':
+            return banner['custom_code']
+
+    def links_get(self):
+        cms_link_obj = self.pool.get('nereid.cms.link')
+        ids = cms_link_obj.search([])
+        request_links = cms_link_obj.browse(ids)
+        return [(x.model, x.name) for x in request_links]
+
+Banner()
 
 
 class ArticleCategory(ModelSQL, ModelView):
@@ -379,13 +524,13 @@ class Article(ModelSQL, ModelView):
     title = fields.Char('Title', required=True, select=1, translate=True)
     content = fields.Text('Content', required=True, translate=True)
     template = fields.Many2One('nereid.template', 'Template', required=True)
-    active = fields.Boolean('Active')
+    active = fields.Boolean('Active', select=1)
     category = fields.Many2One('nereid.cms.article.category', 'Category',
-        required=True)
+        required=True, select=1)
     image = fields.Many2One('nereid.static.file', 'Image')
     author = fields.Many2One('company.employee', 'Author')
     published_on = fields.Date('Published On')
-    sequence = fields.Integer('Sequence', required=True)
+    sequence = fields.Integer('Sequence', required=True, select=1)
     reference = fields.Reference('Reference', selection='links_get')
     description = fields.Text('Short Description')
 
@@ -458,129 +603,3 @@ class Article(ModelSQL, ModelView):
         )
 
 Article()
-
-
-class BannerCategory(ModelSQL, ModelView):
-    """Collection of related Banners"""
-    _name = 'nereid.cms.banner.category'
-    _description = __doc__
-
-    name = fields.Char('Name', required=True)
-    banners = fields.One2Many('nereid.cms.banner', 'category', 'Banners')
-    website = fields.Many2One('nereid.website', 'WebSite')
-
-    def get_banner_category(self, uri, silent=True):
-        """Returns the browse record of the article category given by uri
-        """
-        category = self.search([
-            ('name', '=', uri), 
-            ('website', '=', request.nereid_website.id)
-            ], limit=1)
-        if not category and not silent:
-            raise RuntimeError("Banner category %s not found" % uri)
-        return self.browse(category[0]) if category else None
-
-    def context_processor(self):
-        """This function will be called by nereid to update
-        the template context. Must return a dictionary that the context
-        will be updated with.
-
-        This function is registered with nereid.template.context_processor
-        in xml code
-        """
-        return {'get_banner_category': self.get_banner_category}
-
-BannerCategory()
-
-
-class Banner(ModelSQL, ModelView):
-    """Banner for CMS."""
-    _name = 'nereid.cms.banner'
-    _description = __doc__
-
-    name = fields.Char('Name', required=True)
-    description = fields.Char('Description')
-    category = fields.Many2One('nereid.cms.banner.category', 'Category', 
-        required=True)
-    sequence = fields.Integer('Sequence')
-
-    # Type related data
-    type = fields.Selection([
-        ('image', 'Image'),
-        ('remote_image', 'Remote Image'),
-        ('custom_code', 'Custom Code'),
-        ], 'Type', required=True)
-    file = fields.Many2One('nereid.static.file', 'File',
-        states = {
-            'required': Equal(Eval('type'), 'image'),
-            'invisible': Not(Equal(Eval('type'), 'image'))
-            })
-    remote_image_url = fields.Char('Remote Image URL',
-        states = {
-            'required': Equal(Eval('type'), 'remote_image'),
-            'invisible': Not(Equal(Eval('type'), 'remote_image'))
-            })
-    custom_code = fields.Text('Custom Code', translate=True,
-        states={
-            'required': Equal(Eval('type'), 'custom_code'),
-            'invisible': Not(Equal(Eval('type'), 'custom_code'))
-            })
-
-    # Presentation related Data
-    height = fields.Integer('Height', 
-        states = {
-            'invisible': Not(In(Eval('type'), ['image', 'remote_image']))
-            })
-    width = fields.Integer('Width', 
-        states = {
-            'invisible': Not(In(Eval('type'), ['image', 'remote_image']))
-            })
-    alternative_text = fields.Char('Alternative Text', 
-        states = {
-            'invisible': Not(In(Eval('type'), ['image', 'remote_image']))
-            })
-    click_url = fields.Char('Click URL', translate=True, 
-        states = {
-            'invisible': Not(In(Eval('type'), ['image', 'remote_image']))
-            })
-
-    state = fields.Selection([
-        ('published', 'Published'),
-        ('archived', 'Archived')
-        ], 'State', required=True)
-    reference = fields.Reference('Reference', selection='links_get')
-
-    def __init__(self):
-        super(Banner, self).__init__()
-        self._order.insert(0, ('sequence', 'ASC'))
-
-
-    def get_html(self, id):
-        """Return the HTML content"""
-        banner = self.read(id, ['type', 'click_url', 'file', 
-            'remote_image_url', 'custom_code', 'height', 'width', 
-            'alternative_text', 'click_url'])
-        if banner['type'] == 'image':
-            image = Template(
-                u'<a href="$click_url">'
-                    u'<img src="$file" alt="$alternative_text"'
-                    u' width="$width" height="$height"/>'
-                u'</a>')
-            return image.substitute(**banner)
-        elif banner['type'] == 'remote_image':
-            image = Template(
-                u'<a href="$click_url">'
-                    u'<img src="$remote_image_url" alt="$alternative_text"'
-                    u' width="$width" height="$height"/>'
-                u'</a>')
-            return image.substitute(**banner)
-        elif banner['type'] == 'custom_code':
-            return banner['custom_code']
-
-    def links_get(self):
-        cms_link_obj = self.pool.get('nereid.cms.link')
-        ids = cms_link_obj.search([])
-        request_links = cms_link_obj.browse(ids)
-        return [(x.model, x.name) for x in request_links]
-
-Banner()
