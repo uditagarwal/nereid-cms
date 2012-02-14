@@ -8,23 +8,33 @@ CONFIG.options['db_type'] = 'sqlite'
 from trytond.modules import register_classes
 register_classes()
 
-from nereid.testing import testing_proxy
+from nereid.testing import testing_proxy, TestCase
 from trytond.transaction import Transaction
 
 
-class TestBanner(unittest.TestCase):
+class TestBanner(TestCase):
     """Test Banners"""
 
     @classmethod
     def setUpClass(cls):
+        super(TestBanner, cls).setUpClass()
         testing_proxy.install_module('nereid_cms')
 
     def setUp(self):
-        self.banner_categ_obj = testing_proxy.pool.get('nereid.cms.banner.category')
+        self.banner_categ_obj = testing_proxy.pool.get(
+            'nereid.cms.banner.category'
+        )
         self.banner_obj = testing_proxy.pool.get('nereid.cms.banner')
 
     def test_0010_banner_categ(self):
-        """All banners in published state
+        """All banners in published state.
+
+        The banners attribute of the banner category returns all the banners
+        irrespective of the status. The attribute published_banners must only
+        return the active banners.
+
+        This test creates four banner of which two are later archived, and the
+        test ensures that there are only two published banners
         """
         with Transaction().start(testing_proxy.db_name,
             testing_proxy.user, None):
@@ -35,76 +45,29 @@ class TestBanner(unittest.TestCase):
             banner_categ2 = self.banner_categ_obj.create({
                 'name': 'CAT-B'
             })
-
-            banner1 = self.banner_obj.create({
-                'name': 'CAT-A1',
-                'category': banner_categ1,
-                'type': 'custom_code',
-                'custom_code': 'Custom code A1',
-                'state': 'published'
-            })
-            banner2 = self.banner_obj.create({
-                'name': 'CAT-A2',
-                'category': banner_categ1,
-                'type': 'custom_code',
-                'custom_code': 'Custom code A2',
-                'state': 'published'
-            })
-            banner3 = self.banner_obj.create({
-                'name': 'CAT-B1',
-                'category': banner_categ2,
-                'type': 'custom_code',
-                'custom_code': 'Custom code B1',
-                'state': 'published'
-            })
-            banner4 = self.banner_obj.create({
-                'name': 'CAT-B2',
-                'category': banner_categ2,
-                'type': 'custom_code',
-                'custom_code': 'Custom code B2',
-                'state': 'published'
-            })
-
-            categ1 = self.banner_categ_obj.browse(banner_categ1)
-            categ2 = self.banner_categ_obj.browse(banner_categ2)
-            self.assertEqual(len(categ1.banners), 2)
-            self.assertEqual(len(categ2.banners), 2)
-            self.assertEqual(len(categ1.published_banners), 2)
-            self.assertEqual(len(categ2.published_banners), 2)
-
-    def test_0020_banner_categ(self):
-        with Transaction().start(testing_proxy.db_name,
-            testing_proxy.user, None):
-
-            banner_categ1 = self.banner_categ_obj.create({
-                'name': 'CAT-A'
-            })
-            banner_categ2 = self.banner_categ_obj.create({
-                'name': 'CAT-B'
-            })
-
-            banner1 = self.banner_obj.create({
+ 
+            self.banner_obj.create({
                 'name': 'CAT-A1',
                 'category': banner_categ1,
                 'type': 'custom_code',
                 'custom_code': 'Custom code A1',
                 'state': 'archived'
             })
-            banner2 = self.banner_obj.create({
+            self.banner_obj.create({
                 'name': 'CAT-A2',
                 'category': banner_categ1,
                 'type': 'custom_code',
                 'custom_code': 'Custom code A2',
                 'state': 'published'
             })
-            banner3 = self.banner_obj.create({
+            self.banner_obj.create({
                 'name': 'CAT-B1',
                 'category': banner_categ2,
                 'type': 'custom_code',
                 'custom_code': 'Custom code B1',
                 'state': 'archived'
             })
-            banner4 = self.banner_obj.create({
+            self.banner_obj.create({
                 'name': 'CAT-B2',
                 'category': banner_categ2,
                 'type': 'custom_code',
@@ -120,7 +83,7 @@ class TestBanner(unittest.TestCase):
             self.assertEqual(len(categ2.published_banners), 1)
 
 def suite():
-    "Catalog Browse Node test suite"
+    "Nereid CMS Banners test suite"
     suite = unittest.TestSuite()
     suite.addTests(
         unittest.TestLoader().loadTestsFromTestCase(TestBanner)
