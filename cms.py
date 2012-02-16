@@ -138,8 +138,10 @@ class Menu(ModelSQL, ModelView):
                 the menu identified rather than a tree.
         """
         # First pick up the menu through identifier
-        menu_id = self.search(
-            [('unique_identifier', '=', identifier)], limit=1)
+        menu_id = self.search([
+            ('unique_identifier', '=', identifier),
+            ('website', '=', request.nereid_website.id)
+            ])
 
         if not menu_id:
             current_app.logger.error(
