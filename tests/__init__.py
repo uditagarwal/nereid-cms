@@ -4,6 +4,7 @@ import unittest2 as unittest
 
 from test_cms import TestCMS
 from test_banner import TestBanner
+from test_menu_for import TestMenuFor
 
 
 def suite():
@@ -14,6 +15,9 @@ def suite():
     )
     suite.addTests(
         unittest.TestLoader().loadTestsFromTestCase(TestCMS)
+    )
+    suite.addTests(
+        unittest.TestLoader().loadTestsFromTestCase(TestMenuFor)
     )
     return suite
 
