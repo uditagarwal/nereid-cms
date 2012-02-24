@@ -539,6 +539,10 @@ class Article(ModelSQL, ModelView):
     # Article can have a banner
     banner = fields.Many2One('nereid.cms.banner', 'Banner')
 
+    def __init__(self):
+        super(Article, self).__init__()
+        self._order.insert(0, ('sequence', 'ASC'))
+
     def links_get(self):
         cms_link_obj = self.pool.get('nereid.cms.link')
         ids = cms_link_obj.search([])
