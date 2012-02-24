@@ -431,12 +431,12 @@ class ArticleCategory(ModelSQL, ModelView):
 
     per_page = 10
 
-    title = fields.Char('Title', size=100,
+    title = fields.Char('Title', size=100, translate=True,
         required=True, on_change=['title', 'unique_name'], select=1)
     unique_name = fields.Char('Unique Name', required=True, select=1,
         help='Unique Name is used as the uri.')
     active = fields.Boolean('Active', select=2)
-    description = fields.Text('Description',)
+    description = fields.Text('Description', translate=True)
     template = fields.Many2One('nereid.template', 'Template', required=True)
     articles = fields.One2Many('nereid.cms.article', 'category', 'Articles')
 
