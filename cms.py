@@ -146,7 +146,7 @@ class Menu(ModelSQL, ModelView):
         if not menu_id:
             current_app.logger.error(
                 "Menu %s could not be identified" % identifier)
-            return InternalServerError()
+            return NotFound()
 
         menu = self.browse(menu_id[0])
 
