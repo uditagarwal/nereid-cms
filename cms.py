@@ -394,10 +394,20 @@ class Banner(ModelSQL, ModelView):
 
     def get_html(self, id):
         """Return the HTML content"""
-        banner = self.read(id, ['type', 'click_url', 'file', 
-            'remote_image_url', 'custom_code', 'height', 'width', 
+        static_file_obj = self.pool.get('nereid.static.file')
+
+        banner = self.read(id, ['type', 'click_url', 'file',
+            'remote_image_url', 'custom_code', 'height', 'width',
             'alternative_text', 'click_url'])
+
         if banner['type'] == 'image':
+            # replace the `file` in the dictionary with the complete url
+            # that is required to render the image based on static file
+            file = static_file_obj.browse(banner['file'])
+            banner['file'] = url_for(
+                'nereid.static.file.send_static_file',
+                folder=file.folder.folder_name, name=file.name
+            )
             image = Template(
                 u'<a href="$click_url">'
                     u'<img src="$file" alt="$alternative_text"'
