@@ -36,7 +36,9 @@ class TestCMS(TestCase):
             article_template = testing_proxy.create_template(
                 'article.jinja', cls.article_template
             )
-            cls.site = testing_proxy.create_site('testsite.com')
+            cls.site = testing_proxy.create_site('testsite.com',
+                application_user = 1, guest_user = cls.guest_user
+            )
 
             cls.article_categ = article_categ_obj.create({
                 'title': 'Test Categ',
@@ -62,8 +64,8 @@ class TestCMS(TestCase):
 
     def get_app(self):
         return testing_proxy.make_app(
-            SITE='testsite.com', 
-            GUEST_USER=self.guest_user)
+            SITE='testsite.com'
+        )
 
     def test_0010_article_category(self):
         "Successful rendering of an article_category page"
