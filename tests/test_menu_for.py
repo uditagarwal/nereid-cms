@@ -52,8 +52,12 @@ class TestMenuFor(TestCase):
             category_id = prod_categ_obj.search([
                 ('name', '=', 'Category1')
             ])
-            cls.site1 = testing_proxy.create_site('testsite.com')
-            cls.site2 = testing_proxy.create_site('test_site2')
+            cls.site1 = testing_proxy.create_site('testsite.com',
+                application_user = 1, guest_user=cls.guest_user
+            )
+            cls.site2 = testing_proxy.create_site('test_site2',
+                application_user = 1, guest_user=cls.guest_user
+            )
             model = model_obj.search([
                 ('model', '=', 'product.category')
             ])
@@ -102,8 +106,8 @@ class TestMenuFor(TestCase):
 
     def get_app(self):
         return testing_proxy.make_app(
-            SITE='testsite.com', 
-            GUEST_USER=self.guest_user)
+            SITE='testsite.com',
+        )
 
     def test_0010_menu_for(self):
         """Two different website, having same unique identifier in 
