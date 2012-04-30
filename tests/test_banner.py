@@ -22,8 +22,12 @@ class TestBanner(TestCase):
         testing_proxy.install_module('nereid_cms')
         with Transaction().start(testing_proxy.db_name, 1, None) as txn:
             cls.company = testing_proxy.create_company('Test Company')
-            cls.guest_user = testing_proxy.create_guest_user(company=cls.company)
-            cls.site = testing_proxy.create_site('testsite.com', guest_user=cls.guest_user)
+            cls.guest_user = testing_proxy.create_guest_user(
+                company=cls.company
+            )
+            cls.site = testing_proxy.create_site(
+                'localhost', guest_user=cls.guest_user
+            )
             testing_proxy.create_template(
                 'home.jinja',
                 '''{% for banner in get_banner_category("test-banners").banners %}
@@ -41,7 +45,7 @@ class TestBanner(TestCase):
         self.file_obj = testing_proxy.pool.get('nereid.static.file')
 
     def get_app(self):
-        return testing_proxy.make_app(SITE='testsite.com')
+        return testing_proxy.make_app(SITE='localhost')
 
     def test_0010_banner_categ(self):
         """All banners in published state.

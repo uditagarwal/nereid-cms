@@ -36,7 +36,7 @@ class TestCMS(TestCase):
             article_template = testing_proxy.create_template(
                 'article.jinja', cls.article_template
             )
-            cls.site = testing_proxy.create_site('testsite.com',
+            cls.site = testing_proxy.create_site('localhost',
                 application_user = 1, guest_user = cls.guest_user
             )
 
@@ -64,7 +64,7 @@ class TestCMS(TestCase):
 
     def get_app(self):
         return testing_proxy.make_app(
-            SITE='testsite.com'
+            SITE='localhost'
         )
 
     def test_0010_article_category(self):

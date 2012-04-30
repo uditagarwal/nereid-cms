@@ -52,7 +52,7 @@ class TestMenuFor(TestCase):
             category_id = prod_categ_obj.search([
                 ('name', '=', 'Category1')
             ])
-            cls.site1 = testing_proxy.create_site('testsite.com',
+            cls.site1 = testing_proxy.create_site('localhost',
                 application_user = 1, guest_user=cls.guest_user
             )
             cls.site2 = testing_proxy.create_site('test_site2',
@@ -106,7 +106,7 @@ class TestMenuFor(TestCase):
 
     def get_app(self):
         return testing_proxy.make_app(
-            SITE='testsite.com',
+            SITE='localhost',
         )
 
     def test_0010_menu_for(self):
