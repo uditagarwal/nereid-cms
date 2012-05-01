@@ -5,6 +5,7 @@ import unittest2 as unittest
 
 from trytond.config import CONFIG
 CONFIG.options['db_type'] = 'sqlite'
+CONFIG.options['data_path'] = '/tmp/'
 from trytond.modules import register_classes
 register_classes()
 
@@ -21,6 +22,20 @@ class TestGetHtml(TestCase):
     def setUpClass(cls):
         super(TestGetHtml, cls).setUpClass()
         testing_proxy.install_module('nereid_cms')
+        with Transaction().start(testing_proxy.db_name, 1, None) as txn:
+            company = testing_proxy.create_company('Test Company')
+            cls.guest_user = testing_proxy.create_guest_user(company=company)
+            cls.site = testing_proxy.create_site('localhost',
+                application_user = 1, guest_user = cls.guest_user
+            )
+            testing_proxy.create_template(
+                'home.jinja',
+                '''{% for b in get_banner_category('Category A').banners -%}
+                {{ b.get_html(b.id)|safe }}
+                {%- endfor %}
+                ''',
+                cls.site)
+            txn.cursor.commit()
 
     def setUp(self):
         self.banner_categ_obj = testing_proxy.pool.get(
@@ -30,15 +45,21 @@ class TestGetHtml(TestCase):
         self.file_obj = testing_proxy.pool.get('nereid.static.file')
         self.folder_obj = testing_proxy.pool.get('nereid.static.folder')
 
+    def get_app(self):
+        return testing_proxy.make_app(
+            SITE='localhost'
+        )
+
     def test_0010_get_html(self):
         """
         Get Html for banners with type `image`.
         """
         with Transaction().start(
-            testing_proxy.db_name, testing_proxy.user, None):
+            testing_proxy.db_name, testing_proxy.user, None) as txn:
 
             banner_categ = self.banner_categ_obj.create({
-                'name': 'Category A'
+                'name': 'Category A',
+                'website': self.site,
             })
 
             image = self.folder_obj.create({
@@ -56,10 +77,15 @@ class TestGetHtml(TestCase):
                 'file': file,
                 'state': 'published'
             })
-            banner = self.banner_obj.browse(banner_id)
-            rv = self.banner_obj.get_html(banner_id)
-            html = objectify.fromstring(rv)
-            self.assertEqual(html.find('img').get('src'), banner.file.id)
+            txn.cursor.commit()
+
+        app = self.get_app()
+        with app.test_client() as c:
+            rv = c.get('/')
+            html = objectify.fromstring(rv.data)
+            self.assertEqual(
+                html.find('img').get('src'), '/en_US/static-files/image/logo'
+            )
 
     def test_0020_get_html(self):
         """
