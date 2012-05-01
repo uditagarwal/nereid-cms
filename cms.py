@@ -5,8 +5,9 @@
 from string import Template
 
 from nereid import render_template, current_app, cache, request
-from nereid.helpers import slugify, url_for, key_from_list, Pagination, \
-        SitemapIndex, SitemapSection
+from nereid.helpers import slugify, url_for, key_from_list
+from nereid.contrib.pagination import Pagination
+from nereid.contrib.sitemap import SitemapIndex, SitemapSection
 from werkzeug.exceptions import NotFound, InternalServerError
 
 from trytond.pyson import Eval, Not, Equal, Bool, In
