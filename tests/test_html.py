@@ -1,6 +1,12 @@
-#!/usr/bin/env python
-#This file is part of Tryton.  The COPYRIGHT file at the top level of
-#this repository contains the full copyright notices and license terms.
+# -*- coding: utf-8 -*-
+'''
+    
+    nereid_cms test_html
+    
+    :copyright: (c) 2010-2012 by Openlabs Technologies & Consulting (P) Ltd.
+    :license: GPLv3, see LICENSE for more details
+    
+'''
 import unittest2 as unittest
 
 from trytond.config import CONFIG
