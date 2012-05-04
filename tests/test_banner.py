@@ -120,7 +120,7 @@ class TestBanner(TestCase):
                 'website': self.site
             })
             folder_id = self.folder_obj.create({
-                'name': 'image',
+                'description': 'image',
                 'folder_name': 'image'
             })
             file_id = self.file_obj.create({
@@ -142,7 +142,7 @@ class TestBanner(TestCase):
             html = objectify.fromstring(response.data)
             self.assertEqual(
                 html.find('img').get('src'),
-                '/en_US/static-files/image/logo'
+                '/en_US/static-file/image/logo'
             )
 
         # Delete the banners

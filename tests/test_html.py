@@ -69,7 +69,7 @@ class TestGetHtml(TestCase):
             })
 
             image = self.folder_obj.create({
-                'name': 'image',
+                'description': 'image',
                 'folder_name': 'image'
             })
             file = self.file_obj.create({
@@ -90,7 +90,7 @@ class TestGetHtml(TestCase):
             rv = c.get('/')
             html = objectify.fromstring(rv.data)
             self.assertEqual(
-                html.find('img').get('src'), '/en_US/static-files/image/logo'
+                html.find('img').get('src'), '/en_US/static-file/image/logo'
             )
 
     def test_0020_get_html(self):
