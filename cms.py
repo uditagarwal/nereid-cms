@@ -19,6 +19,7 @@ from werkzeug.exceptions import NotFound, InternalServerError
 from trytond.pyson import Eval, Not, Equal, Bool, In
 from trytond.model import ModelSQL, ModelView, fields
 from trytond.transaction import Transaction
+from trytond.pool import Pool
 
 
 class CMSLink(ModelSQL, ModelView):
@@ -29,8 +30,8 @@ class CMSLink(ModelSQL, ModelView):
     _name = 'nereid.cms.link'
     _description = __doc__
 
-    name = fields.Char('Name', required=True, translate=True)
-    model = fields.Selection('models_get', 'Model', required=True)
+    name = fields.Char('Name', required=True, translate=True, select=True)
+    model = fields.Selection('models_get', 'Model', required=True, select=True)
     priority = fields.Integer('Priority')
 
     def __init__(self):
@@ -41,7 +42,7 @@ class CMSLink(ModelSQL, ModelView):
         return 5
 
     def models_get(self):
-        model_obj = self.pool.get('ir.model')
+        model_obj = Pool().get('ir.model')
         model_ids = model_obj.search([])
         res = []
         for model in model_obj.browse(model_ids):
@@ -58,8 +59,9 @@ class Menu(ModelSQL, ModelView):
 
     name = fields.Char('Name', required=True, 
         on_change=['name', 'unique_identifier'])
-    unique_identifier = fields.Char('Unique Identifier', required=True, 
-        select=1)
+    unique_identifier = fields.Char(
+        'Unique Identifier', required=True, select=True
+    )
     description = fields.Text('Description')
     website = fields.Many2One('nereid.website', 'WebSite')
     active = fields.Boolean('Active')
@@ -107,7 +109,7 @@ class Menu(ModelSQL, ModelView):
         if hasattr(menu_item, 'reference') and getattr(menu_item, 'reference'):
             model, id = getattr(menu_item, 'reference').split(',')
             if int(id):
-                reference = self.pool.get(model).browse(int(id))
+                reference = Pool().get(model).browse(int(id))
                 uri = url_for('%s.render' % reference._name, uri=reference.uri)
             else:
                 uri = getattr(menu_item, menu.uri_field.name)
@@ -158,7 +160,7 @@ class Menu(ModelSQL, ModelView):
         menu = self.browse(menu_id[0])
 
         # Get the data from the model
-        menu_item_object = self.pool.get(menu.model.model)
+        menu_item_object = Pool().get(menu.model.model)
         menu_item_id = menu_item_object.search( 
             [(menu.identifier_field.name, '=', ident_field_value)],
             limit=1)
@@ -210,9 +212,9 @@ class MenuItem(ModelSQL, ModelView):
     _rec_name = 'unique_name'
 
     title = fields.Char('Title', required=True, 
-        on_change=['title', 'unique_name'], select=1, translate=True)
-    unique_name = fields.Char('Unique Name', required=True, select=1)
-    link = fields.Char('Link', select=2)
+        on_change=['title', 'unique_name'], select=True, translate=True)
+    unique_name = fields.Char('Unique Name', required=True, select=True)
+    link = fields.Char('Link', select=True)
     use_url_builder = fields.Boolean('Use URL Builder'),
     url_for_build = fields.Many2One('nereid.url_rule', 'Rule',
         depends=['use_url_builder'],
@@ -231,16 +233,16 @@ class MenuItem(ModelSQL, ModelView):
     child = fields.One2Many('nereid.cms.menuitem', 'parent',
         string='Child Menu Items')
     active = fields.Boolean('Active')
-    sequence = fields.Integer('Sequence', required=True, select=1)
+    sequence = fields.Integer('Sequence', required=True, select=True)
 
-    reference = fields.Reference('Reference', selection='links_get',)
+    reference = fields.Reference('Reference', selection='links_get')
     
     def get_full_url(self, ids, names):
         #TODO
         return ''
 
     def links_get(self):
-        cms_link_obj = self.pool.get('nereid.cms.link')
+        cms_link_obj = Pool().get('nereid.cms.link')
         ids = cms_link_obj.search([])
         request_links = cms_link_obj.browse(ids)
         return [(x.model, x.name) for x in request_links]
@@ -291,9 +293,9 @@ class BannerCategory(ModelSQL, ModelView):
     _name = 'nereid.cms.banner.category'
     _description = __doc__
 
-    name = fields.Char('Name', required=True, select=1)
+    name = fields.Char('Name', required=True, select=True)
     banners = fields.One2Many('nereid.cms.banner', 'category', 'Banners')
-    website = fields.Many2One('nereid.website', 'WebSite', select=1)
+    website = fields.Many2One('nereid.website', 'WebSite', select=True)
     published_banners = fields.Function(fields.One2Many('nereid.cms.banner',
         'category', 'Published Banners'), 'get_published_banners')
 
@@ -323,7 +325,7 @@ class BannerCategory(ModelSQL, ModelView):
         Get the published banners.
         """
         res = {}
-        nereid_banner_obj = self.pool.get('nereid.cms.banner')
+        nereid_banner_obj = Pool().get('nereid.cms.banner')
         for category in self.browse(ids):
             res[category.id]=[]
             banners = nereid_banner_obj.search([
@@ -342,11 +344,11 @@ class Banner(ModelSQL, ModelView):
     _name = 'nereid.cms.banner'
     _description = __doc__
 
-    name = fields.Char('Name', required=True, select=1)
+    name = fields.Char('Name', required=True, select=True)
     description = fields.Char('Description')
     category = fields.Many2One('nereid.cms.banner.category', 'Category', 
-        required=True, select=1)
-    sequence = fields.Integer('Sequence', select=1)
+        required=True, select=True)
+    sequence = fields.Integer('Sequence', select=True)
 
     # Type related data
     type = fields.Selection([
@@ -391,7 +393,7 @@ class Banner(ModelSQL, ModelView):
     state = fields.Selection([
         ('published', 'Published'),
         ('archived', 'Archived')
-        ], 'State', required=True, select=1)
+        ], 'State', required=True, select=True)
     reference = fields.Reference('Reference', selection='links_get')
 
     def __init__(self):
@@ -401,7 +403,7 @@ class Banner(ModelSQL, ModelView):
 
     def get_html(self, id):
         """Return the HTML content"""
-        static_file_obj = self.pool.get('nereid.static.file')
+        static_file_obj = Pool().get('nereid.static.file')
 
         banner = self.read(id, ['type', 'click_url', 'file',
             'remote_image_url', 'custom_code', 'height', 'width',
@@ -432,7 +434,7 @@ class Banner(ModelSQL, ModelView):
             return banner['custom_code']
 
     def links_get(self):
-        cms_link_obj = self.pool.get('nereid.cms.link')
+        cms_link_obj = Pool().get('nereid.cms.link')
         ids = cms_link_obj.search([])
         request_links = cms_link_obj.browse(ids)
         return [(x.model, x.name) for x in request_links]
@@ -449,10 +451,10 @@ class ArticleCategory(ModelSQL, ModelView):
     per_page = 10
 
     title = fields.Char('Title', size=100, translate=True,
-        required=True, on_change=['title', 'unique_name'], select=1)
-    unique_name = fields.Char('Unique Name', required=True, select=1,
+        required=True, on_change=['title', 'unique_name'], select=True)
+    unique_name = fields.Char('Unique Name', required=True, select=True,
         help='Unique Name is used as the uri.')
-    active = fields.Boolean('Active', select=2)
+    active = fields.Boolean('Active', select=True)
     description = fields.Text('Description', translate=True)
     template = fields.Many2One('nereid.template', 'Template', required=True)
     articles = fields.One2Many('nereid.cms.article', 'category', 'Articles')
@@ -481,7 +483,7 @@ class ArticleCategory(ModelSQL, ModelView):
         """
         Renders the category
         """
-        article_obj = self.pool.get('nereid.cms.article')
+        article_obj = Pool().get('nereid.cms.article')
         # Find in cache or load from DB
         cache_key = 'nereid.cms.article.category.%s.%s' % (
             uri, Transaction().language)
@@ -539,17 +541,17 @@ class Article(ModelSQL, ModelView):
     _description = __doc__
     _rec_name = 'uri'
 
-    uri = fields.Char('URI', required=True, select=1, translate=True)
-    title = fields.Char('Title', required=True, select=1, translate=True)
+    uri = fields.Char('URI', required=True, select=True, translate=True)
+    title = fields.Char('Title', required=True, select=True, translate=True)
     content = fields.Text('Content', required=True, translate=True)
     template = fields.Many2One('nereid.template', 'Template', required=True)
-    active = fields.Boolean('Active', select=1)
+    active = fields.Boolean('Active', select=True)
     category = fields.Many2One('nereid.cms.article.category', 'Category',
-        required=True, select=1)
+        required=True, select=True)
     image = fields.Many2One('nereid.static.file', 'Image')
     author = fields.Many2One('company.employee', 'Author')
     published_on = fields.Date('Published On')
-    sequence = fields.Integer('Sequence', required=True, select=1)
+    sequence = fields.Integer('Sequence', required=True, select=True)
     reference = fields.Reference('Reference', selection='links_get')
     description = fields.Text('Short Description')
 
@@ -561,7 +563,7 @@ class Article(ModelSQL, ModelView):
         self._order.insert(0, ('sequence', 'ASC'))
 
     def links_get(self):
-        cms_link_obj = self.pool.get('nereid.cms.link')
+        cms_link_obj = Pool().get('nereid.cms.link')
         ids = cms_link_obj.search([])
         request_links = cms_link_obj.browse(ids)
         return [(x.model, x.name) for x in request_links]
@@ -576,7 +578,7 @@ class Article(ModelSQL, ModelView):
         return res
 
     def default_author(self):
-        user_obj = self.pool.get('res.user')
+        user_obj = Pool().get('res.user')
 
         context = Transaction().context
         if context is None:
@@ -593,7 +595,7 @@ class Article(ModelSQL, ModelView):
         return False
 
     def default_published_on(self):
-        date_obj = self.pool.get('ir.date')
+        date_obj = Pool().get('ir.date')
         return date_obj.today()
 
     def render(self, uri):
