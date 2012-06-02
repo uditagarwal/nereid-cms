@@ -7,8 +7,7 @@
 <tryton>
     <data>
         <menuitem name="CMS" sequence="20" id="menu_nereid_cms"
-            parent="nereid.menu_nereid" 
-            groups="nereid.group_nereid_admin" />
+            parent="nereid.menu_nereid" />
 
         <!-- Menus -->
         <record model="ir.ui.view" id="cms_menus_view_form">
@@ -75,13 +74,11 @@
             <field name="act_window" ref="act_cms_menus_form" />
         </record>
         <menuitem name="Menus" sequence="20" id="menu_nereid_cms_menus"
-            parent="menu_nereid_cms" 
-            groups="nereid.group_nereid_admin" />
+            parent="menu_nereid_cms" />
         <menuitem name="Menus" sequence="20"
             id="menu_nereid_cms_menus_all" 
             parent="menu_nereid_cms_menus"
-            action="act_cms_menus_form" 
-            groups="nereid.group_nereid_admin" />
+            action="act_cms_menus_form" />
 
         <!-- Menuitems -->
         <record model="ir.ui.view" id="cms_menuitems_view_form">
@@ -133,7 +130,7 @@
                 <tree string="CMS Menuitems">
                     <field name="title"/>
                     <field name="unique_name"/>
-                    <field name="rec_name" select="2"/>
+                    <field name="rec_name" />
                     <field name="link"/>
                     <field name="active"/>
                 </tree>
@@ -191,8 +188,7 @@
         <menuitem name="Menuitems" sequence="10"
             id="menu_nereid_cms_menuitems" 
             parent="menu_cms_menuitems_tree"
-            action="act_cms_menuitems_form" 
-            groups="nereid.group_nereid_admin" />
+            action="act_cms_menuitems_form" />
             
         
         <record model="ir.action.act_window" id="act_cms_menuitems_form_new">
@@ -208,8 +204,7 @@
         <menuitem name="New Menuitem" sequence="10"
             id="menu_nereid_cms_menuitems_new" 
             parent="menu_cms_menuitems_tree"
-            action="act_cms_menuitems_form_new" 
-            groups="nereid.group_nereid_admin" />
+            action="act_cms_menuitems_form_new" />
 
         <record model="nereid.template.context_processor" id="ctx_processor_menu">
             <field name="method">nereid.cms.menu.context_processor</field>
@@ -217,8 +212,7 @@
 
         <!-- Articles -->
         <menuitem id="menu_cms_articles" name="Articles" 
-            parent="menu_nereid_cms"
-            groups="nereid.group_nereid_admin" />
+            parent="menu_nereid_cms" />
 
         <record model="ir.ui.view" id="cms_article_categ_view_form">
             <field name="model">nereid.cms.article.category</field>
@@ -279,8 +273,7 @@
 
         <menuitem action="action_cms_article_category" 
           id="menu_cms_articles_category"
-          name="Article Categories" parent="menu_cms_articles"
-          groups="nereid.group_nereid_admin" />
+          name="Article Categories" parent="menu_cms_articles" />
 
         <record model="ir.ui.view" id="cms_article_view_form">
             <field name="model">nereid.cms.article</field>
@@ -375,8 +368,7 @@
         </record>
 
         <menuitem action="action_cms_articles" id="menu_cms_articles_articles"
-            name="Articles" parent="menu_cms_articles"
-            groups="nereid.group_nereid_admin" />
+            name="Articles" parent="menu_cms_articles" />
 
         <record model="nereid.template.context_processor" id="ctx_processor_article_category">
             <field name="method">nereid.cms.article.category.context_processor</field>
@@ -384,8 +376,7 @@
 
         <!-- Banners -->
         <menuitem id="menu_cms_banners" name="Banners" 
-            parent="menu_nereid_cms"
-            groups="nereid.group_nereid_admin" />
+            parent="menu_nereid_cms" />
             
         <record model="ir.ui.view" id="cms_banner_categ_view_form">
             <field name="model">nereid.cms.banner.category</field>
@@ -419,7 +410,7 @@
                 <![CDATA[
                     <tree string="CMS Banner Categories">
                         <field name="name" />
-                        <field name="wesbite" />
+                        <field name="website" />
                     </tree>
                 ]]>
             </field>
@@ -444,8 +435,7 @@
 
         <menuitem action="action_cms_banner_category" 
           id="menu_cms_banner_category"
-          name="Banner Categories" parent="menu_cms_banners"
-          groups="nereid.group_nereid_admin" />
+          name="Banner Categories" parent="menu_cms_banners" />
             
         <record model="ir.ui.view" id="cms_banner_view_form">
             <field name="model">nereid.cms.banner</field>
@@ -525,8 +515,7 @@
         </record>
 
         <menuitem action="action_cms_banners" id="menu_cms_banners_banners"
-            name="Banners" parent="menu_cms_banners"
-            groups="nereid.group_nereid_admin" />
+            name="Banners" parent="menu_cms_banners" />
 
         <record model="nereid.template.context_processor" id="ctx_processor_banner_category">
             <field name="method">nereid.cms.banner.category.context_processor</field>
@@ -555,8 +544,8 @@
             <field name="arch" type="xml">
               <![CDATA[
                 <tree string="CMS Link">
-                    <field name="name" select="1"/>
-                    <field name="model" select="1"/>
+                    <field name="name" />
+                    <field name="model" />
                 </tree>
                 ]]>
             </field>
@@ -577,8 +566,8 @@
             <field name="view" ref="cms_link_view_form"/>
             <field name="act_window" ref="act_cms_link_form"/>
         </record>
-        <menuitem parent="menu_nereid_cms" groups="nereid.group_nereid_admin"
-            action="act_cms_link_form" id="menu_cms_link_form"/>
+        <menuitem parent="menu_nereid_cms" action="act_cms_link_form" 
+            id="menu_cms_link_form" />
 
         <!-- Model Access -->
         <record model="ir.model.access" id="access_menus_nereid_admin">

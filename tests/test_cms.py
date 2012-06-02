@@ -16,6 +16,7 @@ register_classes()
 
 from nereid.testing import testing_proxy, TestCase
 from trytond.transaction import Transaction
+from trytond.pool import Pool
 
 
 class TestCMS(TestCase):
@@ -26,12 +27,9 @@ class TestCMS(TestCase):
         super(TestCMS, cls).setUpClass()
         testing_proxy.install_module('nereid_cms')
 
-        article_categ_obj = testing_proxy.pool.get(
-            'nereid.cms.article.category'
-            )
-        article_obj = testing_proxy.pool.get('nereid.cms.article')
-
         with Transaction().start(testing_proxy.db_name, 1, None) as txn:
+            article_categ_obj = Pool().get('nereid.cms.article.category')
+            article_obj = Pool().get('nereid.cms.article')
             company = testing_proxy.create_company('Test Company')
             cls.guest_user = testing_proxy.create_guest_user(company=company)
 

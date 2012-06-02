@@ -17,6 +17,7 @@ register_classes()
 
 from nereid.testing import testing_proxy, TestCase
 from trytond.transaction import Transaction
+from trytond.pool import Pool
 
 
 class TestMenuFor(TestCase):
@@ -28,20 +29,17 @@ class TestMenuFor(TestCase):
         testing_proxy.install_module('nereid_cms')
         testing_proxy.install_module('product')
 
-        menu_obj = testing_proxy.pool.get('nereid.cms.menu')
-        website_obj = testing_proxy.pool.get('nereid.website')
-        url_obj = testing_proxy.pool.get('nereid.url_map')
-        language_obj = testing_proxy.pool.get('ir.lang')
-        model_obj = testing_proxy.pool.get('ir.model')
-        model_field_obj = testing_proxy.pool.get('ir.model.field')
-        prod_categ_obj = testing_proxy.pool.get('product.category')
-        article_categ_obj = testing_proxy.pool.get(
-            'nereid.cms.article.category'
-            )
-        article_obj = testing_proxy.pool.get('nereid.cms.article')
-
-
         with Transaction().start(testing_proxy.db_name, 1, None) as txn:
+            menu_obj = Pool().get('nereid.cms.menu')
+            website_obj = Pool().get('nereid.website')
+            url_obj = Pool().get('nereid.url_map')
+            language_obj = Pool().get('ir.lang')
+            model_obj = Pool().get('ir.model')
+            model_field_obj = Pool().get('ir.model.field')
+            prod_categ_obj = Pool().get('product.category')
+            article_categ_obj = Pool().get('nereid.cms.article.category')
+            article_obj = testing_proxy.pool.get('nereid.cms.article')
+
             # Create company
             cls.company = testing_proxy.create_company('Test Company')
             cls.guest_user = testing_proxy.create_guest_user(company=cls.company)
