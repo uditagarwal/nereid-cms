@@ -1,26 +1,22 @@
 # -*- coding: utf-8 -*-
 '''
-    
+
     nereid_cms test_menu_for
-    
-    :copyright: (c) 2010-2012 by Openlabs Technologies & Consulting (P) Ltd.
+
+    :copyright: (c) 2010-2013 by Openlabs Technologies & Consulting (P) Ltd.
     :license: GPLv3, see LICENSE for more details
-    
+
 '''
-import unittest2 as unittest
-import ast
+import unittest
+from ast import literal_eval
 
-from trytond.config import CONFIG
-CONFIG.options['db_type'] = 'sqlite'
-from trytond.modules import register_classes
-register_classes()
-
-from nereid.testing import testing_proxy, TestCase
+import trytond.tests.test_tryton
+from trytond.tests.test_tryton import POOL, USER, DB_NAME, CONTEXT
+from nereid.testing import NereidTestCase
 from trytond.transaction import Transaction
-from trytond.pool import Pool
 
 
-class TestMenuFor(TestCase):
+class TestMenuFor(NereidTestCase):
     """Test menu_for"""
 
     @classmethod
@@ -99,29 +95,78 @@ class TestMenuFor(TestCase):
             menu2 = menu_obj.browse(menu_id2)
             website2 = website_obj.browse(cls.site2)
             category = prod_categ_obj.browse(category_id)
-            home_template = testing_proxy.create_template(
-                'home.jinja',
-                '{{ menu_for("%s", "%s")|safe }}' % \
-                (menu1.unique_identifier, category[0].name),
-                cls.site1
-            )
 
-            txn.cursor.commit()
 
-    def get_app(self):
-        return testing_proxy.make_app(
-            SITE='localhost',
-        )
+
+    def setup_defaults(self):
+        """
+        Setup the defaults
+        """
+        usd = self.currency_obj.create({
+            'name': 'US Dollar',
+            'code': 'USD',
+            'symbol': '$',
+        })
+        company_id = self.company_obj.create({
+            'name': 'Openlabs',
+            'currency': usd
+        })
+        guest_user = self.nereid_user_obj.create({
+            'name': 'Guest User',
+            'display_name': 'Guest User',
+            'email': 'guest@openlabs.co.in',
+            'password': 'password',
+            'company': company_id,
+        })
+        self.registered_user_id = self.nereid_user_obj.create({
+            'name': 'Registered User',
+            'display_name': 'Registered User',
+            'email': 'email@example.com',
+            'password': 'password',
+            'company': company_id,
+        })
+
+        # Create website
+        url_map_id, = self.url_map_obj.search([], limit=1)
+        en_us, = self.language_obj.search([('code', '=', 'en_US')])
+        self.nereid_website_obj.create({
+            'name': 'localhost',
+            'url_map': url_map_id,
+            'company': company_id,
+            'application_user': USER,
+            'default_language': en_us,
+            'guest_user': guest_user,
+            'currencies': [('set', [usd])],
+        })
+
+    def setUp(self):
+        trytond.tests.test_tryton.install_module('nereid_cms')
+
+        self.currency_obj = POOL.get('currency.currency')
+        self.company_obj = POOL.get('company.company')
+        self.nereid_user_obj = POOL.get('nereid.user')
+        self.url_map_obj = POOL.get('nereid.url_map')
+        self.language_obj = POOL.get('ir.lang')
+        self.nereid_website_obj = POOL.get('nereid.website')
+
+        self.menu_obj = POOL.get('nereid.cms.menu')
+
+        self.templates = {
+            'localhost/home.jinja':
+                '{{ menu_for("identifier", "category-name")|safe }}',
+        }
 
     def test_0010_menu_for(self):
-        """Two different website, having same unique identifier in 
+        """Two different website, having same unique identifier in
         nereid.cms.menu
         """
-        app = self.get_app()
-        with app.test_client() as c:
-            response = c.get('/en_US/')
-            rv = ast.literal_eval(response.data)
-        self.assertTrue(rv['uri'], 'Category1')
+        with Transaction().start(DB_NAME, USER, CONTEXT):
+            self.setup_defaults()
+            app = self.get_app()
+            with app.test_client() as c:
+                response = c.get('/en_US/')
+                rv = literal_eval(response.data)
+            self.assertTrue(rv['uri'], 'Category1')
 
 
 def suite():

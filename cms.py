@@ -456,7 +456,7 @@ class ArticleCategory(ModelSQL, ModelView):
         help='Unique Name is used as the uri.')
     active = fields.Boolean('Active', select=True)
     description = fields.Text('Description', translate=True)
-    template = fields.Many2One('nereid.template', 'Template', required=True)
+    template = fields.Char('Template', required=True)
     articles = fields.One2Many('nereid.cms.article', 'category', 'Articles')
 
     # Article Category can have a banner
@@ -465,6 +465,9 @@ class ArticleCategory(ModelSQL, ModelView):
     def default_active(self):
         'Return True' 
         return True
+
+    def default_template(self):
+        return 'article-category.jinja'
 
     def __init__(self):
         super(ArticleCategory, self).__init__()
@@ -498,7 +501,7 @@ class ArticleCategory(ModelSQL, ModelView):
         articles = Pagination(article_obj, [('category', '=', category.id)], 
             page, self.per_page)
         return render_template(
-            category.template.name, category=category, articles=articles)
+            category.template, category=category, articles=articles)
 
     def get_article_category(self, uri, silent=True):
         """Returns the browse record of the article category given by uri
@@ -544,7 +547,7 @@ class Article(ModelSQL, ModelView):
     uri = fields.Char('URI', required=True, select=True, translate=True)
     title = fields.Char('Title', required=True, select=True, translate=True)
     content = fields.Text('Content', required=True, translate=True)
-    template = fields.Many2One('nereid.template', 'Template', required=True)
+    template = fields.Char('Template', required=True)
     active = fields.Boolean('Active', select=True)
     category = fields.Many2One('nereid.cms.article.category', 'Category',
         required=True, select=True)
@@ -576,6 +579,9 @@ class Article(ModelSQL, ModelView):
         if vals.get('title') and not vals.get('uri'):
             res['uri'] = slugify(vals['title'])
         return res
+
+    def default_template(self):
+        return 'article.jinja'
 
     def default_author(self):
         user_obj = Pool().get('res.user')
@@ -611,7 +617,7 @@ class Article(ModelSQL, ModelView):
         if not article_ids:
             return NotFound()
         article = self.browse(article_ids[0])
-        return render_template(article.template.name, article=article)
+        return render_template(article.template, article=article)
 
     def sitemap_index(self):
         index = SitemapIndex(self, [])
