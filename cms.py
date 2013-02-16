@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 '''
-    
+
     Nereid CMS
-    
-    :copyright: (c) 2010-2012 by Openlabs Technologies & Consulting (P) Ltd.
+
+    :copyright: (c) 2010-2013 by Openlabs Technologies & Consulting (P) Ltd.
     :license: GPLv3, see LICENSE for more details
-    
+
 '''
 
 from string import Template
@@ -21,43 +21,45 @@ from trytond.model import ModelSQL, ModelView, fields
 from trytond.transaction import Transaction
 from trytond.pool import Pool
 
+__all__ = [
+        'CMSLink', 'Menu', 'MenuItem', 'BannerCategory', 'Banner',
+        'ArticleCategory', 'Article',
+]
 
 class CMSLink(ModelSQL, ModelView):
     """CMS link
 
     (c) 2010 Tryton Project
     """
-    _name = 'nereid.cms.link'
-    _description = __doc__
+    __name__ = 'nereid.cms.link'
 
     name = fields.Char('Name', required=True, translate=True, select=True)
     model = fields.Selection('models_get', 'Model', required=True, select=True)
     priority = fields.Integer('Priority')
 
-    def __init__(self):
-        super(CMSLink, self).__init__()
-        self._order.insert(0, ('priority', 'ASC'))
+    @classmethod
+    def __setup__(cls):
+        super(CMSLink, cls).__setup__()
+        cls._order.insert(0, ('priority', 'ASC'))
 
-    def default_priority(self):
+    @staticmethod
+    def default_priority():
         return 5
 
-    def models_get(self):
-        model_obj = Pool().get('ir.model')
-        model_ids = model_obj.search([])
+    @staticmethod
+    def models_get():
+        Model = Pool().get('ir.model')
         res = []
-        for model in model_obj.browse(model_ids):
+        for model in Model.search([]):
             res.append((model.model, model.name))
         return res
-
-CMSLink()
 
 
 class Menu(ModelSQL, ModelView):
     "Nereid CMS Menu"
-    _name = 'nereid.cms.menu'
-    _description = __doc__
+    __name__ = 'nereid.cms.menu'
 
-    name = fields.Char('Name', required=True, 
+    name = fields.Char('Name', required=True,
         on_change=['name', 'unique_identifier'])
     unique_identifier = fields.Char(
         'Unique Identifier', required=True, select=True
@@ -88,88 +90,88 @@ class Menu(ModelSQL, ModelView):
             ('ttype', '=', 'char')
         ], required=True)
 
-    def default_active(self):
+    @staticmethod
+    def default_active():
         """
         By Default the Menu is active
         """
         return True
 
-    def __init__(self):
-        super(Menu, self).__init__()
-        self._sql_constraints += [
+    @classmethod
+    def __setup__(cls):
+        super(Menu, cls).__setup__()
+        cls._sql_constraints += [
             ('unique_identifier', 'UNIQUE(unique_identifier, website)',
                 'The Unique Identifier of the Menu must be unique.'),
         ]
 
-    def _menu_item_to_dict(self, menu, menu_item):
+    def _menu_item_to_dict(self, menu_item):
         """
-        :param menu_item: BR of the menu item
-        :param menu: BR of the menu set
+        :param menu_item: Active record of the menu item
         """
         if hasattr(menu_item, 'reference') and getattr(menu_item, 'reference'):
             model, id = getattr(menu_item, 'reference').split(',')
             if int(id):
-                reference = Pool().get(model).browse(int(id))
+                reference, = Pool().get(model).browse([int(id)])
                 uri = url_for('%s.render' % reference._name, uri=reference.uri)
             else:
-                uri = getattr(menu_item, menu.uri_field.name)
+                uri = getattr(menu_item, self.uri_field.name)
         else:
-            uri = getattr(menu_item, menu.uri_field.name)
+            uri = getattr(menu_item, self.uri_field.name)
         return {
-                'name' : getattr(menu_item, menu.title_field.name),
+                'name' : getattr(menu_item, self.title_field.name),
                 'uri' : uri,
             }
 
-    def _generate_menu_tree(self, menu, menu_item):
+    def _generate_menu_tree(self, menu_item):
         """
-        :param menu: BrowseRecord of the Menu
-        :param menu_item: BrowseRecord of the root menu_item
+        :param menu_item: Active record of the root menu_item
         """
         result = {'children' : [ ]}
-        result.update(self._menu_item_to_dict(menu, menu_item))
+        result.update(self._menu_item_to_dict(menu_item))
         # If children exist iteratively call _generate_..
-        children = getattr(menu_item, menu.children_field.name)
+        children = getattr(menu_item, self.children_field.name)
         if children:
             for child in children:
                 result['children'].append(
-                    self._generate_menu_tree(menu, child))
+                    self._generate_menu_tree(child))
         return result
 
-    def menu_for(self, identifier, ident_field_value, objectified=False):
+    @classmethod
+    def menu_for(cls, identifier, ident_field_value, objectified=False):
         """
         Returns a dictionary of menu tree
 
         :param identifier: The unique identifier from which the menu
                 has to be chosen
-        :param ident_field_value: The value of the field that has to be 
+        :param ident_field_value: The value of the field that has to be
                 looked up on model with search on ident_field
-        :param objectified: The value returned is the browse recod of 
+        :param objectified: The value returned is the active record of
                 the menu identified rather than a tree.
         """
         # First pick up the menu through identifier
-        menu_id = self.search([
-            ('unique_identifier', '=', identifier),
-            ('website', '=', request.nereid_website.id)
+        try:
+            menu, = cls.search([
+                ('unique_identifier', '=', identifier),
+                ('website', '=', request.nereid_website.id),
             ])
 
-        if not menu_id:
+        except ValueError:
             current_app.logger.error(
                 "Menu %s could not be identified" % identifier)
             return NotFound()
 
-        menu = self.browse(menu_id[0])
-
         # Get the data from the model
-        menu_item_object = Pool().get(menu.model.model)
-        menu_item_id = menu_item_object.search( 
-            [(menu.identifier_field.name, '=', ident_field_value)],
-            limit=1)
-        if not menu_item_id:
+        MenuItem = Pool().get(menu.model.model)
+        try:
+            root_menu_item, = MenuItem.search(
+                [(menu.identifier_field.name, '=', ident_field_value)],
+                limit=1)
+        except ValueError:
             current_app.logger.error(
                 "Menu %s could not be identified" % ident_field_value)
             return InternalServerError()
 
-        root_menu_item = menu_item_object.browse(menu_item_id[0])
         if objectified:
             return root_menu_item
 
@@ -182,17 +184,18 @@ class Menu(ModelSQL, ModelView):
         ])
         rv = cache.get(cache_key)
         if rv is None:
-            rv = self._generate_menu_tree(menu, root_menu_item)
+            rv = menu._generate_menu_tree(root_menu_item)
             cache.set(cache_key, rv, 60*60)
         return rv
 
-    def on_change_name(self, vals):
-        res = { }
-        if vals.get('name') and not vals.get('unique_identifier'):
-            res['unique_identifier'] = slugify(vals['name'])
+    def on_change_name(self):
+        res = {}
+        if self.name and not self.unique_identifier:
+            res['unique_identifier'] = slugify(self.name)
         return res
 
-    def context_processor(self):
+    @classmethod
+    def context_processor(cls):
         """This function will be called by nereid to update
         the template context. Must return a dictionary that the context
         will be updated with.
@@ -200,18 +203,15 @@ class Menu(ModelSQL, ModelView):
         This function is registered with nereid.template.context_processor
         in xml code
         """
-        return {'menu_for': self.menu_for}
-
-Menu()
+        return {'menu_for': cls.menu_for}
 
 
 class MenuItem(ModelSQL, ModelView):
     "Nereid CMS Menuitem"
-    _name = 'nereid.cms.menuitem'
-    _description = __doc__
+    __name__ = 'nereid.cms.menuitem'
     _rec_name = 'unique_name'
 
-    title = fields.Char('Title', required=True, 
+    title = fields.Char('Title', required=True,
         on_change=['title', 'unique_name'], select=True, translate=True)
     unique_name = fields.Char('Unique Name', required=True, select=True)
     link = fields.Char('Link')
@@ -236,62 +236,54 @@ class MenuItem(ModelSQL, ModelView):
     sequence = fields.Integer('Sequence', required=True, select=True)
 
     reference = fields.Reference('Reference', selection='links_get')
-    
-    def get_full_url(self, ids, names):
+
+    def get_full_url(self, name):
         #TODO
         return ''
 
-    def links_get(self):
-        cms_link_obj = Pool().get('nereid.cms.link')
-        ids = cms_link_obj.search([])
-        request_links = cms_link_obj.browse(ids)
-        return [(x.model, x.name) for x in request_links]
+    @staticmethod
+    def links_get():
+        CMSLink = Pool().get('nereid.cms.link')
+        return [(x.model, x.name) for x in CMSLink.search([])]
 
-    def default_active(self):
+    @staticmethod
+    def default_active():
         return True
 
-    def default_values_to_build(self):
+    @staticmethod
+    def default_values_to_build():
         return '{ }'
 
-    def __init__(self):
-        super(MenuItem, self).__init__()
-        self._constraints += [
+    @classmethod
+    def __setup__(cls):
+        super(MenuItem, cls).__setup__()
+        cls._constraints += [
             ('check_recursion', 'wrong_recursion')
         ]
-        self._error_messages.update({
-            'wrong_recursion': 
+        cls._error_messages.update({
+            'wrong_recursion':
             'Error ! You can not create recursive menuitems.',
         })
-        self._order.insert(0, ('sequence', 'ASC'))
+        cls._order.insert(0, ('sequence', 'ASC'))
 
-    def on_change_title(self,vals):
+    def on_change_title(self):
         res = {}
-        if vals.get('title') and not vals.get('unique_name'):
-            res['unique_name'] = slugify(vals['title'])
+        if self.title and not self.unique_name:
+            res['unique_name'] = slugify(self.title)
         return res
 
-    def get_rec_name(self, ids, name):
-        if not ids:
-            return {}
-        res = {}
+    def get_rec_name(self, name):
         def _name(menuitem):
-            if menuitem.id in res:
-                return res[menuitem.id]
-            elif menuitem.parent:
+            if menuitem.parent:
                 return _name(menuitem.parent) + ' / ' + menuitem.title
             else:
                 return menuitem.title
-        for menuitem in self.browse(ids):
-            res[menuitem.id] = _name(menuitem)
-        return res
-
-MenuItem()
+        return _name(self)
 
 
 class BannerCategory(ModelSQL, ModelView):
     """Collection of related Banners"""
-    _name = 'nereid.cms.banner.category'
-    _description = __doc__
+    __name__ = 'nereid.cms.banner.category'
 
     name = fields.Char('Name', required=True, select=True)
     banners = fields.One2Many('nereid.cms.banner', 'category', 'Banners')
@@ -299,18 +291,20 @@ class BannerCategory(ModelSQL, ModelView):
     published_banners = fields.Function(fields.One2Many('nereid.cms.banner',
         'category', 'Published Banners'), 'get_published_banners')
 
-    def get_banner_category(self, uri, silent=True):
+    @classmethod
+    def get_banner_category(cls, uri, silent=True):
         """Returns the browse record of the article category given by uri
         """
-        category = self.search([
-            ('name', '=', uri), 
+        category = cls.search([
+            ('name', '=', uri),
             ('website', '=', request.nereid_website.id)
             ], limit=1)
         if not category and not silent:
             raise RuntimeError("Banner category %s not found" % uri)
-        return self.browse(category[0]) if category else None
+        return category[0] if category else None
 
-    def context_processor(self):
+    @classmethod
+    def context_processor(cls):
         """This function will be called by nereid to update
         the template context. Must return a dictionary that the context
         will be updated with.
@@ -318,35 +312,30 @@ class BannerCategory(ModelSQL, ModelView):
         This function is registered with nereid.template.context_processor
         in xml code
         """
-        return {'get_banner_category': self.get_banner_category}
+        return {'get_banner_category': cls.get_banner_category}
 
-    def get_published_banners(self, ids, name):
+    def get_published_banners(self, name):
         """
         Get the published banners.
         """
-        res = {}
-        nereid_banner_obj = Pool().get('nereid.cms.banner')
-        for category in self.browse(ids):
-            res[category.id]=[]
-            banners = nereid_banner_obj.search([
-                ('state', '=', 'published'),
-                ('category', '=', category)
-            ])
-            for banner in nereid_banner_obj.browse(banners):
-                res[category.id].append(banner.id)
+        NereidBanner = Pool().get('nereid.cms.banner')
+        res = []
+        banners = NereidBanner.search([
+            ('state', '=', 'published'),
+            ('category', '=', self.id)
+        ])
+        for banner in NereidBanner.browse(banners):
+            res.append(banner.id)
         return res
-
-BannerCategory()
 
 
 class Banner(ModelSQL, ModelView):
     """Banner for CMS."""
-    _name = 'nereid.cms.banner'
-    _description = __doc__
+    __name__ = 'nereid.cms.banner'
 
     name = fields.Char('Name', required=True, select=True)
     description = fields.Char('Description')
-    category = fields.Many2One('nereid.cms.banner.category', 'Category', 
+    category = fields.Many2One('nereid.cms.banner.category', 'Category',
         required=True, select=True)
     sequence = fields.Integer('Sequence', select=True)
 
@@ -373,19 +362,19 @@ class Banner(ModelSQL, ModelView):
             })
 
     # Presentation related Data
-    height = fields.Integer('Height', 
+    height = fields.Integer('Height',
         states = {
             'invisible': Not(In(Eval('type'), ['image', 'remote_image']))
             })
-    width = fields.Integer('Width', 
+    width = fields.Integer('Width',
         states = {
             'invisible': Not(In(Eval('type'), ['image', 'remote_image']))
             })
-    alternative_text = fields.Char('Alternative Text', 
+    alternative_text = fields.Char('Alternative Text',
         states = {
             'invisible': Not(In(Eval('type'), ['image', 'remote_image']))
             })
-    click_url = fields.Char('Click URL', translate=True, 
+    click_url = fields.Char('Click URL', translate=True,
         states = {
             'invisible': Not(In(Eval('type'), ['image', 'remote_image']))
             })
@@ -396,27 +385,25 @@ class Banner(ModelSQL, ModelView):
         ], 'State', required=True, select=True)
     reference = fields.Reference('Reference', selection='links_get')
 
-    def __init__(self):
-        super(Banner, self).__init__()
-        self._order.insert(0, ('sequence', 'ASC'))
+    @classmethod
+    def __setup__(cls):
+        super(Banner, cls).__setup__()
+        cls._order.insert(0, ('sequence', 'ASC'))
 
 
-    def get_html(self, id):
+    def get_html(self):
         """Return the HTML content"""
-        static_file_obj = Pool().get('nereid.static.file')
+        StaticFile = Pool().get('nereid.static.file')
 
-        banner = self.read(id, ['type', 'click_url', 'file',
+        banner = self.read([self], ['type', 'click_url', 'file',
             'remote_image_url', 'custom_code', 'height', 'width',
-            'alternative_text', 'click_url'])
+            'alternative_text', 'click_url'])[0]
 
         if banner['type'] == 'image':
             # replace the `file` in the dictionary with the complete url
             # that is required to render the image based on static file
-            file = static_file_obj.browse(banner['file'])
-            banner['file'] = url_for(
-                'nereid.static.file.send_static_file',
-                folder=file.folder.folder_name, name=file.name
-            )
+            file = StaticFile(banner['file'])
+            banner['file'] = file.url
             image = Template(
                 u'<a href="$click_url">'
                     u'<img src="$file" alt="$alternative_text"'
@@ -433,19 +420,15 @@ class Banner(ModelSQL, ModelView):
         elif banner['type'] == 'custom_code':
             return banner['custom_code']
 
-    def links_get(self):
-        cms_link_obj = Pool().get('nereid.cms.link')
-        ids = cms_link_obj.search([])
-        request_links = cms_link_obj.browse(ids)
-        return [(x.model, x.name) for x in request_links]
-
-Banner()
+    @staticmethod
+    def links_get():
+        CMSLink = Pool().get('nereid.cms.link')
+        return [(x.model, x.name) for x in CMSLink.search([])]
 
 
 class ArticleCategory(ModelSQL, ModelView):
     "Article Categories"
-    _name = 'nereid.cms.article.category'
-    _description = __doc__
+    __name__ = 'nereid.cms.article.category'
     _rec_name = 'title'
 
     per_page = 10
@@ -456,59 +439,65 @@ class ArticleCategory(ModelSQL, ModelView):
         help='Unique Name is used as the uri.')
     active = fields.Boolean('Active', select=True)
     description = fields.Text('Description', translate=True)
-    template = fields.Many2One('nereid.template', 'Template', required=True)
+    template = fields.Char('Template', required=True)
     articles = fields.One2Many('nereid.cms.article', 'category', 'Articles')
 
     # Article Category can have a banner
     banner = fields.Many2One('nereid.cms.banner', 'Banner')
 
-    def default_active(self):
-        'Return True' 
+    @staticmethod
+    def default_active():
+        'Return True'
         return True
 
-    def __init__(self):
-        super(ArticleCategory, self).__init__()
-        self._sql_constraints += [
+    @staticmethod
+    def default_template():
+        return 'article-category.jinja'
+
+    @classmethod
+    def __setup__(cls):
+        super(ArticleCategory, cls).__setup__()
+        cls._sql_constraints += [
             ('unique_name', 'UNIQUE(unique_name)',
                 'The Unique Name of the Category must be unique.'),
         ]
 
-    def on_change_title(self, vals):
-        res = { }
-        if vals.get('title') and not vals.get('unique_name'):
-            res['unique_name'] = slugify(vals['title'])
+    def on_change_title(self):
+        res = {}
+        if self.title and not self.unique_name:
+            res['title'] = slugify(self.title)
         return res
 
-    def render(self, uri, page=1):
+    @classmethod
+    def render(cls, uri, page=1):
         """
         Renders the category
         """
-        article_obj = Pool().get('nereid.cms.article')
+        Article = Pool().get('nereid.cms.article')
+
         # Find in cache or load from DB
-        cache_key = 'nereid.cms.article.category.%s.%s' % (
-            uri, Transaction().language)
-        category_ids = cache.get(cache_key)
-        if not category_ids:
-            category_ids = self.search([('unique_name', '=', uri)])
-            cache.set(cache_key, category_ids, 60*60)
-        if not category_ids:
+        try:
+            category, = cls.search([('unique_name', '=', uri)])
+        except ValueError:
             return NotFound()
 
-        category = self.browse(category_ids[0])
-        articles = Pagination(article_obj, [('category', '=', category.id)], 
-            page, self.per_page)
+        articles = Pagination(
+            Article, [('category', '=', category.id)], page, cls.per_page
+        )
         return render_template(
-            category.template.name, category=category, articles=articles)
+            category.template, category=category, articles=articles)
 
-    def get_article_category(self, uri, silent=True):
+    @classmethod
+    def get_article_category(cls, uri, silent=True):
         """Returns the browse record of the article category given by uri
         """
-        category = self.search([('unique_name', '=', uri)], limit=1)
+        category = cls.search([('unique_name', '=', uri)], limit=1)
         if not category and not silent:
             raise RuntimeError("Article category %s not found" % uri)
-        return self.browse(category[0]) if category else None
+        return category[0] if category else None
 
-    def context_processor(self):
+    @classmethod
+    def context_processor(cls):
         """This function will be called by nereid to update
         the template context. Must return a dictionary that the context
         will be updated with.
@@ -516,35 +505,34 @@ class ArticleCategory(ModelSQL, ModelView):
         This function is registered with nereid.template.context_processor
         in xml code
         """
-        return {'get_article_category': self.get_article_category}
+        return {'get_article_category': cls.get_article_category}
 
-    def sitemap_index(self):
+    @classmethod
+    def sitemap_index(cls):
         index = SitemapIndex(self, [])
         return index.render()
 
-    def sitemap(self, page):
-        sitemap_section = SitemapSection(self, [], page)
+    @classmethod
+    def sitemap(cls, page):
+        sitemap_section = SitemapSection(cls, [], page)
         sitemap_section.changefreq = 'daily'
         return sitemap_section.render()
 
-    def get_absolute_url(self, category, **kwargs):
+    def get_absolute_url(self, **kwargs):
         return url_for(
-            'nereid.cms.article.category.render', uri=category.uri, **kwargs
+            'nereid.cms.article.category.render', uri=self.uri, **kwargs
         )
-
-ArticleCategory()
 
 
 class Article(ModelSQL, ModelView):
     "CMS Articles"
-    _name = 'nereid.cms.article'
-    _description = __doc__
+    __name__ = 'nereid.cms.article'
     _rec_name = 'uri'
 
     uri = fields.Char('URI', required=True, select=True, translate=True)
     title = fields.Char('Title', required=True, select=True, translate=True)
     content = fields.Text('Content', required=True, translate=True)
-    template = fields.Many2One('nereid.template', 'Template', required=True)
+    template = fields.Char('Template', required=True)
     active = fields.Boolean('Active', select=True)
     category = fields.Many2One('nereid.cms.article.category', 'Category',
         required=True, select=True)
@@ -558,27 +546,33 @@ class Article(ModelSQL, ModelView):
     # Article can have a banner
     banner = fields.Many2One('nereid.cms.banner', 'Banner')
 
-    def __init__(self):
-        super(Article, self).__init__()
-        self._order.insert(0, ('sequence', 'ASC'))
+    @classmethod
+    def __setup__(cls):
+        super(Article, cls).__setup__()
+        cls._order.insert(0, ('sequence', 'ASC'))
 
-    def links_get(self):
-        cms_link_obj = Pool().get('nereid.cms.link')
-        ids = cms_link_obj.search([])
-        request_links = cms_link_obj.browse(ids)
-        return [(x.model, x.name) for x in request_links]
+    @staticmethod
+    def links_get():
+        CMSLink = Pool().get('nereid.cms.link')
+        return [(x.model, x.name) for x in CMSLink.search([])]
 
-    def default_active(self):
+    @staticmethod
+    def default_active():
         return True
 
-    def on_change_title(self, vals):
-        res = { }
-        if vals.get('title') and not vals.get('uri'):
-            res['uri'] = slugify(vals['title'])
+    def on_change_title(self):
+        res = {}
+        if self.title and not self.uri:
+            res['uri'] = slugify(self.title)
         return res
 
-    def default_author(self):
-        user_obj = Pool().get('res.user')
+    @staticmethod
+    def default_template():
+        return 'article.jinja'
+
+    @staticmethod
+    def default_author():
+        User = Pool().get('res.user')
 
         context = Transaction().context
         if context is None:
@@ -587,44 +581,41 @@ class Article(ModelSQL, ModelView):
         if context.get('employee'):
             employee_id = context['employee']
         else:
-            user = user_obj.browse(Transaction().user)
+            user = User(Transaction().user)
             if user.employee:
                 employee_id = user.employee.id
         if employee_id:
             return employee_id
         return False
 
-    def default_published_on(self):
-        date_obj = Pool().get('ir.date')
-        return date_obj.today()
+    @staticmethod
+    def default_published_on():
+        Date = Pool().get('ir.date')
+        return Date.today()
 
-    def render(self, uri):
+    @classmethod
+    def render(cls, uri):
         """
         Renders the template
         """
-        # Find in cache or load from DB
-        cache_key = 'nereid.cms.article.%s.%s' % (uri, Transaction().language)
-        article_ids = cache.get(cache_key)
-        if not article_ids:
-            article_ids = self.search([('uri', '=', uri)])
-            cache.set(cache_key, article_ids, 60*60)
-        if not article_ids:
+        try:
+            article, = cls.search([('uri', '=', uri)])
+        except ValueError:
             return NotFound()
-        article = self.browse(article_ids[0])
-        return render_template(article.template.name, article=article)
+        return render_template(article.template, article=article)
 
-    def sitemap_index(self):
-        index = SitemapIndex(self, [])
+    @classmethod
+    def sitemap_index(cls):
+        index = SitemapIndex(cls, [])
         return index.render()
 
-    def sitemap(self, page):
-        sitemap_section = SitemapSection(self, [], page)
+    @classmethod
+    def sitemap(cls, page):
+        sitemap_section = SitemapSection(cls, [], page)
         sitemap_section.changefreq = 'daily'
         return sitemap_section.render()
 
-    def get_absolute_url(self, article, **kwargs):
+    def get_absolute_url(self, **kwargs):
         return url_for(
-            'nereid.cms.article.render', uri=article.uri, **kwargs
+            'nereid.cms.article.render', uri=self.uri, **kwargs
         )
-
-Article()
