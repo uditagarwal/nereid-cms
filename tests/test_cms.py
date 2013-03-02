@@ -10,7 +10,8 @@
 import unittest
 
 import trytond.tests.test_tryton
-from trytond.tests.test_tryton import POOL, USER, DB_NAME, CONTEXT
+from trytond.tests.test_tryton import POOL, USER, DB_NAME, CONTEXT, \
+    test_view, test_depends
 from nereid.testing import NereidTestCase
 from trytond.transaction import Transaction
 
@@ -104,6 +105,18 @@ class TestCMS(NereidTestCase):
             'sequence': 10,
             'category': article_categ,
         })
+
+    def test0005views(self):
+        '''
+        Test views.
+        '''
+        test_view('nereid_cms')
+
+    def test0006depends(self):
+        '''
+        Test depends.
+        '''
+        test_depends()
 
     def test_0010_article_category(self):
         "Successful rendering of an article_category page"
