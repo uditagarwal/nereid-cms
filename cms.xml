@@ -105,8 +105,6 @@
                     <page string="Routing" id="routing">
                       <label name="link"/>
                       <field name="link"/>
-                      <label name="use_url_builder"/>
-                      <field name="use_url_builder"/>
                       <label name="url_for_build"/>
                       <field name="url_for_build"/>
                       <label name="values_to_build"/>
