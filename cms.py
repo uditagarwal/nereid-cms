@@ -517,7 +517,7 @@ class ArticleCategory(ModelSQL, ModelView):
 
     @classmethod
     def sitemap_index(cls):
-        index = SitemapIndex(self, [])
+        index = SitemapIndex(cls, [])
         return index.render()
 
     @classmethod
