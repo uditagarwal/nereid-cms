@@ -148,6 +148,17 @@ class TestCMS(NereidTestCase):
                 response = c.get('/en_US/sitemaps/article-category-index.xml')
                 self.assertEqual(response.status_code, 200)
 
+    def test_0040_category_sitemap(self):
+        '''
+        Successful rendering artical catagory sitemap
+        '''
+        with Transaction().start(DB_NAME, USER, CONTEXT):
+            self.setup_defaults()
+            app = self.get_app()
+            with app.test_client() as c:
+                response = c.get('en_US/sitemaps/article-category-1.xml')
+                self.assertEqual(response.status_code, 200)
+
 
 def suite():
     "CMS test suite"

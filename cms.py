@@ -528,7 +528,8 @@ class ArticleCategory(ModelSQL, ModelView):
 
     def get_absolute_url(self, **kwargs):
         return url_for(
-            'nereid.cms.article.category.render', uri=self.uri, **kwargs
+            'nereid.cms.article.category.render',
+            uri=self.unique_name, **kwargs
         )
 
 
