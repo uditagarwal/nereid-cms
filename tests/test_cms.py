@@ -10,14 +10,14 @@
 import unittest
 
 import trytond.tests.test_tryton
-from trytond.tests.test_tryton import POOL, USER, DB_NAME, CONTEXT
+from trytond.tests.test_tryton import POOL, USER, DB_NAME, CONTEXT, \
+    test_view, test_depends
 from nereid.testing import NereidTestCase
 from trytond.transaction import Transaction
 
 
 class TestCMS(NereidTestCase):
     """Test CMS"""
-
 
     def setUp(self):
         trytond.tests.test_tryton.install_module('nereid_cms')
@@ -36,10 +36,10 @@ class TestCMS(NereidTestCase):
 
         self.templates = {
             'localhost/home.jinja':
-                '''{% for banner in get_banner_category("test-banners").banners %}
-                {{ banner.get_html(banner.id)|safe }}
-                {% endfor %}
-                ''',
+            '''{% for banner in get_banner_category("test-banners").banners %}
+            {{ banner.get_html(banner.id)|safe }}
+            {% endfor %}
+            ''',
             'localhost/article-category.jinja': '{{ articles|length }}',
             'localhost/article.jinja': '{{ article.content }}',
         }
@@ -105,6 +105,18 @@ class TestCMS(NereidTestCase):
             'category': article_categ,
         })
 
+    def test0005views(self):
+        '''
+        Test views.
+        '''
+        test_view('nereid_cms')
+
+    def test0006depends(self):
+        '''
+        Test depends.
+        '''
+        test_depends()
+
     def test_0010_article_category(self):
         "Successful rendering of an article_category page"
         with Transaction().start(DB_NAME, USER, CONTEXT):
@@ -125,13 +137,35 @@ class TestCMS(NereidTestCase):
                 self.assertEqual(response.status_code, 200)
                 self.assertEqual(response.data, 'Test Content')
 
+    def test_0030_sitemapindex(self):
+        '''
+        Successful index rendering
+        '''
+        with Transaction().start(DB_NAME, USER, CONTEXT):
+            self.setup_defaults()
+            app = self.get_app(DEBUG=True)
+            with app.test_client() as c:
+                response = c.get('/en_US/sitemaps/article-category-index.xml')
+                self.assertEqual(response.status_code, 200)
+
+    def test_0040_category_sitemap(self):
+        '''
+        Successful rendering artical catagory sitemap
+        '''
+        with Transaction().start(DB_NAME, USER, CONTEXT):
+            self.setup_defaults()
+            app = self.get_app()
+            with app.test_client() as c:
+                response = c.get('en_US/sitemaps/article-category-1.xml')
+                self.assertEqual(response.status_code, 200)
+
 
 def suite():
     "CMS test suite"
     test_suite = unittest.TestSuite()
     test_suite.addTests(
         unittest.TestLoader().loadTestsFromTestCase(TestCMS)
-        )
+    )
     return test_suite
 
 if __name__ == '__main__':

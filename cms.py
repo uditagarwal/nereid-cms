@@ -60,7 +60,9 @@ class Menu(ModelSQL, ModelView):
     __name__ = 'nereid.cms.menu'
 
     name = fields.Char('Name', required=True,
-        on_change=['name', 'unique_identifier'])
+        on_change=['name', 'unique_identifier'],
+        depends=['name', 'unique_identifier']
+    )
     unique_identifier = fields.Char(
         'Unique Identifier', required=True, select=True
     )
@@ -70,21 +72,25 @@ class Menu(ModelSQL, ModelView):
 
     model = fields.Many2One('ir.model', 'Tryton Model', required=True)
     children_field = fields.Many2One('ir.model.field', 'Children',
+        depends=['model', 'ttype'],
         domain=[
             ('model', '=', Eval('model')),
             ('ttype', '=', 'one2many')
         ], required=True)
     uri_field = fields.Many2One('ir.model.field', 'URI Field',
+        depends=['model', 'ttype'],
         domain=[
             ('model', '=', Eval('model')),
             ('ttype', '=', 'char')
         ], required=True)
     title_field = fields.Many2One('ir.model.field', 'Title Field',
+        depends=['model', 'ttype'],
         domain=[
             ('model', '=', Eval('model')),
             ('ttype', '=', 'char')
         ], required=True)
     identifier_field = fields.Many2One('ir.model.field', 'Identifier Field',
+        depends=['model', 'ttype'],
         domain=[
             ('model', '=', Eval('model')),
             ('ttype', '=', 'char')
@@ -112,8 +118,10 @@ class Menu(ModelSQL, ModelView):
         if hasattr(menu_item, 'reference') and getattr(menu_item, 'reference'):
             model, id = getattr(menu_item, 'reference').split(',')
             if int(id):
-                reference, = Pool().get(model).browse([int(id)])
-                uri = url_for('%s.render' % reference._name, uri=reference.uri)
+                reference, = Pool().get(model)(int(id))
+                uri = url_for(
+                    '%s.render' % reference.__name__, uri=reference.uri
+                )
             else:
                 uri = getattr(menu_item, self.uri_field.name)
         else:
@@ -215,13 +223,13 @@ class MenuItem(ModelSQL, ModelView):
         on_change=['title', 'unique_name'], select=True, translate=True)
     unique_name = fields.Char('Unique Name', required=True, select=True)
     link = fields.Char('Link')
-    use_url_builder = fields.Boolean('Use URL Builder'),
+    use_url_builder = fields.Boolean('Use URL Builder')
     url_for_build = fields.Many2One('nereid.url_rule', 'Rule',
         depends=['use_url_builder'],
         states={
             'required': Equal(Bool(Eval('use_url_builder')), True),
             'invisible': Not(Equal(Bool(Eval('use_url_builder')), True)),
-            }),
+            })
     values_to_build = fields.Char('Values', depends=['use_url_builder'],
         states={
             'required': Equal(Bool(Eval('use_url_builder')), True),
@@ -509,7 +517,7 @@ class ArticleCategory(ModelSQL, ModelView):
 
     @classmethod
     def sitemap_index(cls):
-        index = SitemapIndex(self, [])
+        index = SitemapIndex(cls, [])
         return index.render()
 
     @classmethod
@@ -520,7 +528,8 @@ class ArticleCategory(ModelSQL, ModelView):
 
     def get_absolute_url(self, **kwargs):
         return url_for(
-            'nereid.cms.article.category.render', uri=self.uri, **kwargs
+            'nereid.cms.article.category.render',
+            uri=self.unique_name, **kwargs
         )
 
 
