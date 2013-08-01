@@ -108,12 +108,10 @@ tests_require = [
 
 setup(name='trytond_nereid_cms',
     version=info.get('version', '0.0.1'),
-    description=info.get('description', ''),
-    author=info.get('author', ''),
-    author_email=info.get('email', ''),
-    url=info.get('website', ''),
-    download_url="http://downloads.openlabs.co.in/" + \
-            info.get('version', '0.0.1').rsplit('.', 1)[0] + '/',
+    description='Tryton Nereid CMS',
+    author='Openlabs Technologies & Consulting (P) Limited',
+    author_email='info@openlabs.co.in',
+    url='http://www.openlabs.co.in/',
     package_dir={'trytond.modules.nereid_cms': '.'},
     packages=[
         'trytond.modules.nereid_cms',
