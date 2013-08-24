@@ -24,4 +24,5 @@ def register():
         Banner,
         ArticleCategory,
         Article,
+        ArticleAttribute,
         module='nereid_cms', type_='model')
