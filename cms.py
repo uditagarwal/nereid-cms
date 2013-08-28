@@ -23,7 +23,7 @@ from trytond.pool import Pool
 
 __all__ = [
         'CMSLink', 'Menu', 'MenuItem', 'BannerCategory', 'Banner',
-        'ArticleCategory', 'Article',
+        'ArticleCategory', 'Article', 'ArticleAttribute',
 ]
 
 class CMSLink(ModelSQL, ModelView):
@@ -551,6 +551,9 @@ class Article(ModelSQL, ModelView):
     sequence = fields.Integer('Sequence', required=True, select=True)
     reference = fields.Reference('Reference', selection='links_get')
     description = fields.Text('Short Description')
+    attributes = fields.One2Many(
+        'nereid.cms.article.attribute', 'article', 'Attributes'
+    )
 
     # Article can have a banner
     banner = fields.Many2One('nereid.cms.banner', 'Banner')
@@ -628,3 +631,26 @@ class Article(ModelSQL, ModelView):
         return url_for(
             'nereid.cms.article.render', uri=self.uri, **kwargs
         )
+
+
+class ArticleAttribute(ModelSQL, ModelView):
+    "Articles Attribute"
+    __name__ = 'nereid.cms.article.attribute'
+    _rec_name = 'value'
+
+    name = fields.Selection([
+        ('google+', 'Google+'),
+        ('facebook', 'Facebook'),
+        ('twitter', 'Twitter'),
+        ('github', 'Github'),
+        ('linked-in','Linked-in'),
+        ('blogger','Blogger'),
+        ('tumblr', 'Tumblr'),
+        ('website', 'Website'),
+        ('phone', 'Phone'),
+    ], 'Name', required=True, select=True)
+    value =  fields.Char('Value', required=True)
+    article = fields.Many2One(
+        'nereid.cms.article', 'Article', ondelete='CASCADE', required=True,
+        select=True,
+    )
