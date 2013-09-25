@@ -36,7 +36,8 @@ class TestBanner(NereidTestCase):
 
         self.templates = {
             'localhost/home.jinja':
-                '''{% for banner in get_banner_category("test-banners").banners %}
+                '''
+                {% for banner in get_banner_category("test-banners").banners %}
                 {{ banner.get_html()|safe }}
                 {% endfor %}
                 ''',
@@ -161,7 +162,7 @@ class TestBanner(NereidTestCase):
                 'name': 'logo',
                 'folder': folder,
             })
-            banner = self.Banner.create({
+            self.Banner.create({
                 'name': 'Test Image Banner',
                 'category': category,
                 'type': 'image',
@@ -184,12 +185,11 @@ class TestBanner(NereidTestCase):
         """
         with Transaction().start(DB_NAME, USER, CONTEXT):
             site = self.setup_defaults()
-
             category = self.BannerCategory.create({
                 'name': 'test-banners',
                 'website': site
             })
-            banner = self.Banner.create({
+            self.Banner.create({
                 'name': 'Test Remote Image Banner',
                 'category': category,
                 'type': 'remote_image',
@@ -217,7 +217,7 @@ class TestBanner(NereidTestCase):
                 'name': 'test-banners',
                 'website': site
             })
-            banner = self.Banner.create({
+            self.Banner.create({
                 'name': 'Test Remote Image Banner',
                 'category': category,
                 'type': 'custom_code',
@@ -253,7 +253,8 @@ class TestGetHtml(NereidTestCase):
 
         self.templates = {
             'localhost/home.jinja':
-                '''{% for b in get_banner_category('Category A').banners -%}
+                '''
+                {% for b in get_banner_category('Category A').banners -%}
                 {{ b.get_html()|safe }}
                 {%- endfor %}
                 ''',
@@ -328,7 +329,7 @@ class TestGetHtml(NereidTestCase):
                 'name': 'logo',
                 'folder': image,
             })
-            banner = self.Banner.create({
+            self.Banner.create({
                 'name': 'Test Banner1',
                 'category': banner_category,
                 'type': 'image',
@@ -341,7 +342,8 @@ class TestGetHtml(NereidTestCase):
                 rv = c.get('/')
                 html = objectify.fromstring(rv.data)
                 self.assertEqual(
-                    html.find('img').get('src'), '/en_US/static-file/image/logo'
+                    html.find('img').get('src'),
+                    '/en_US/static-file/image/logo'
                 )
 
     def test_0020_get_html(self):
@@ -349,7 +351,7 @@ class TestGetHtml(NereidTestCase):
         Get Html for banners with type `remote_image`.
         """
         with Transaction().start(DB_NAME, USER, CONTEXT):
-            site = self.setup_defaults()
+            self.setup_defaults()
 
             banner_category = self.BannerCategory.create({
                 'name': 'Category B'
@@ -359,19 +361,23 @@ class TestGetHtml(NereidTestCase):
                 'name': 'Test Banner2',
                 'category': banner_category,
                 'type': 'remote_image',
-                'remote_image_url': 'http://profile.ak.fbcdn.net/hprofile-ak-snc4/187819_122589627793765_7532740_n.jpg',
+                'remote_image_url':
+                    'http://profile.ak.fbcdn.net/hprofile-ak-snc4'
+                    '/187819_122589627793765_7532740_n.jpg',
                 'state': 'published'
             })
             rv = banner.get_html()
             html = objectify.fromstring(rv)
-            self.assertEqual(html.find('img').get('src'), banner.remote_image_url)
+            self.assertEqual(
+                html.find('img').get('src'), banner.remote_image_url
+            )
 
     def test_0030_get_html(self):
         """
         Get Html for banners with type `custom_code`.
         """
         with Transaction().start(DB_NAME, USER, CONTEXT):
-            site = self.setup_defaults()
+            self.setup_defaults()
 
             banner_category = self.BannerCategory.create({
                 'name': 'Category C'

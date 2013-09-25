@@ -96,7 +96,7 @@ class TestMenuFor(NereidTestCase):
             Model = POOL.get('ir.model')
             ModelField = POOL.get('ir.model.field')
 
-            product_category = ProductCategory.create({
+            ProductCategory.create({
                 'name': 'Category1'
             })
             model = Model.search([
@@ -110,7 +110,7 @@ class TestMenuFor(NereidTestCase):
                 ('ttype', '=', 'one2many'),
                 ('model', '=', model[0])
             ])
-            menu_id1 = self.menu_obj.create({
+            self.menu_obj.create({
                 'name': 'menu1',
                 'unique_identifier': 'identifier',
                 'website': self.site1.id,
@@ -136,7 +136,7 @@ def suite():
     suite = unittest.TestSuite()
     suite.addTests(
         unittest.TestLoader().loadTestsFromTestCase(TestMenuFor)
-        )
+    )
     return suite
 
 

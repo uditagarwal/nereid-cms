@@ -186,7 +186,7 @@ class TestCMS(NereidTestCase):
             # Checks an article is created with attributes
             self.assert_(article1.id)
             self.assertEqual(self.ArticleAttribute.search([], count=True), 1)
-            # Checks that if an article is deleted then respective attributes 
+            # Checks that if an article is deleted then respective attributes
             # are also deleted.
             self.article_obj.delete([article1])
             self.assertEqual(self.ArticleAttribute.search([], count=True), 0)
