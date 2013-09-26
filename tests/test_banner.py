@@ -33,9 +33,10 @@ class TestBanner(NereidTestCase):
         self.UrlMap = POOL.get('nereid.url_map')
         self.Language = POOL.get('ir.lang')
         self.NereidWebsite = POOL.get('nereid.website')
+        self.Party = POOL.get('party.party')
 
         self.templates = {
-            'localhost/home.jinja':
+            'home.jinja':
                 '''
                 {% for banner in get_banner_category("test-banners").banners %}
                 {{ banner.get_html()|safe }}
@@ -53,42 +54,51 @@ class TestBanner(NereidTestCase):
         """
         Setup the defaults
         """
-        usd = self.Currency.create({
+        usd, = self.Currency.create([{
             'name': 'US Dollar',
             'code': 'USD',
             'symbol': '$',
-        })
-        company = self.Company.create({
-            'name': 'Openlabs',
+        }])
+        company_party, = self.Party.create([{
+            'name': 'Openlabs'
+        }])
+        company, = self.Company.create([{
+            'party': company_party,
             'currency': usd
-        })
-        guest_user = self.NereidUser.create({
+        }])
+        guest_party, = self.Party.create([{
             'name': 'Guest User',
+        }])
+        guest_user, = self.NereidUser.create([{
+            'party': guest_party,
             'display_name': 'Guest User',
             'email': 'guest@openlabs.co.in',
             'password': 'password',
             'company': company,
-        })
-        self.registered_user_id = self.NereidUser.create({
-            'name': 'Registered User',
+        }])
+        registered_party, = self.Party.create([{
+            'name': 'Registered User'
+        }])
+        self.registered_user, = self.NereidUser.create([{
+            'party': registered_party,
             'display_name': 'Registered User',
             'email': 'email@example.com',
             'password': 'password',
             'company': company,
-        })
+        }])
 
         # Create website
         url_map, = self.UrlMap.search([], limit=1)
         en_us, = self.Language.search([('code', '=', 'en_US')])
-        return self.NereidWebsite.create({
+        return self.NereidWebsite.create([{
             'name': 'localhost',
             'url_map': url_map,
             'company': company,
             'application_user': USER,
             'default_language': en_us,
             'guest_user': guest_user,
-            'currencies': [('set', [usd])],
-        })
+            'currencies': [('set', [usd.id])],
+        }])[0]
 
     def test_0010_banner_categ(self):
         """All banners in published state.
@@ -102,41 +112,41 @@ class TestBanner(NereidTestCase):
         """
         with Transaction().start(DB_NAME, USER, CONTEXT):
 
-            banner_categ1 = self.BannerCategory.create({
+            banner_categ1, = self.BannerCategory.create([{
                 'name': 'CAT-A'
-            })
-            banner_categ2 = self.BannerCategory.create({
+            }])
+            banner_categ2, = self.BannerCategory.create([{
                 'name': 'CAT-B'
-            })
+            }])
 
-            self.Banner.create({
+            self.Banner.create([{
                 'name': 'CAT-A1',
                 'category': banner_categ1,
                 'type': 'custom_code',
                 'custom_code': 'Custom code A1',
                 'state': 'archived'
-            })
-            self.Banner.create({
+            }])
+            self.Banner.create([{
                 'name': 'CAT-A2',
                 'category': banner_categ1,
                 'type': 'custom_code',
                 'custom_code': 'Custom code A2',
                 'state': 'published'
-            })
-            self.Banner.create({
+            }])
+            self.Banner.create([{
                 'name': 'CAT-B1',
                 'category': banner_categ2,
                 'type': 'custom_code',
                 'custom_code': 'Custom code B1',
                 'state': 'archived'
-            })
-            self.Banner.create({
+            }])
+            self.Banner.create([{
                 'name': 'CAT-B2',
                 'category': banner_categ2,
                 'type': 'custom_code',
                 'custom_code': 'Custom code B2',
                 'state': 'published'
-            })
+            }])
 
             self.assertEqual(len(banner_categ1.banners), 2)
             self.assertEqual(len(banner_categ1.banners), 2)
@@ -150,25 +160,25 @@ class TestBanner(NereidTestCase):
         with Transaction().start(DB_NAME, USER, CONTEXT):
             site = self.setup_defaults()
 
-            category = self.BannerCategory.create({
+            category, = self.BannerCategory.create([{
                 'name': 'test-banners',
                 'website': site
-            })
-            folder = self.Folder.create({
+            }])
+            folder, = self.Folder.create([{
                 'description': 'image',
                 'folder_name': 'image'
-            })
-            file = self.File.create({
+            }])
+            file, = self.File.create([{
                 'name': 'logo',
                 'folder': folder,
-            })
-            self.Banner.create({
+            }])
+            self.Banner.create([{
                 'name': 'Test Image Banner',
                 'category': category,
                 'type': 'image',
                 'file': file,
                 'state': 'published'
-            })
+            }])
 
             app = self.get_app()
             with app.test_client() as c:
@@ -185,17 +195,17 @@ class TestBanner(NereidTestCase):
         """
         with Transaction().start(DB_NAME, USER, CONTEXT):
             site = self.setup_defaults()
-            category = self.BannerCategory.create({
+            category, = self.BannerCategory.create([{
                 'name': 'test-banners',
                 'website': site
-            })
-            self.Banner.create({
+            }])
+            self.Banner.create([{
                 'name': 'Test Remote Image Banner',
                 'category': category,
                 'type': 'remote_image',
                 'remote_image_url': 'http://some/remote/url',
                 'state': 'published'
-            })
+            }])
 
             app = self.get_app()
             with app.test_client() as c:
@@ -213,17 +223,17 @@ class TestBanner(NereidTestCase):
         with Transaction().start(DB_NAME, USER, CONTEXT):
             site = self.setup_defaults()
 
-            category = self.BannerCategory.create({
+            category, = self.BannerCategory.create([{
                 'name': 'test-banners',
                 'website': site
-            })
-            self.Banner.create({
+            }])
+            self.Banner.create([{
                 'name': 'Test Remote Image Banner',
                 'category': category,
                 'type': 'custom_code',
                 'custom_code': 'some ultra complex custom code',
                 'state': 'published'
-            })
+            }])
 
             app = self.get_app()
             with app.test_client() as c:
@@ -250,16 +260,17 @@ class TestGetHtml(NereidTestCase):
         self.UrlMap = POOL.get('nereid.url_map')
         self.Language = POOL.get('ir.lang')
         self.NereidWebsite = POOL.get('nereid.website')
+        self.Party = POOL.get('party.party')
 
         self.templates = {
-            'localhost/home.jinja':
+            'home.jinja':
                 '''
                 {% for b in get_banner_category('Category A').banners -%}
                 {{ b.get_html()|safe }}
                 {%- endfor %}
                 ''',
-            'localhost/article-category.jinja': '{{ articles|length }}',
-            'localhost/article.jinja': '{{ article.content }}',
+            'article-category.jinja': '{{ articles|length }}',
+            'article.jinja': '{{ article.content }}',
         }
 
     def get_template_source(self, name):
@@ -272,42 +283,51 @@ class TestGetHtml(NereidTestCase):
         """
         Setup the defaults
         """
-        usd = self.Currency.create({
+        usd, = self.Currency.create([{
             'name': 'US Dollar',
             'code': 'USD',
             'symbol': '$',
-        })
-        company = self.Company.create({
-            'name': 'Openlabs',
+        }])
+        company_party, = self.Party.create([{
+            'name': 'Openlabs'
+        }])
+        company, = self.Company.create([{
+            'party': company_party,
             'currency': usd
-        })
-        guest_user = self.NereidUser.create({
+        }])
+        guest_party, = self.Party.create([{
             'name': 'Guest User',
+        }])
+        guest_user, = self.NereidUser.create([{
+            'party': guest_party,
             'display_name': 'Guest User',
             'email': 'guest@openlabs.co.in',
             'password': 'password',
             'company': company,
-        })
-        self.registered_user_id = self.NereidUser.create({
-            'name': 'Registered User',
+        }])
+        registered_party, = self.Party.create([{
+            'name': 'Registered User'
+        }])
+        self.registered_user, = self.NereidUser.create([{
+            'party': registered_party,
             'display_name': 'Registered User',
             'email': 'email@example.com',
             'password': 'password',
             'company': company,
-        })
+        }])
 
         # Create website
         url_map, = self.UrlMap.search([], limit=1)
         en_us, = self.Language.search([('code', '=', 'en_US')])
-        return self.NereidWebsite.create({
+        return self.NereidWebsite.create([{
             'name': 'localhost',
             'url_map': url_map,
             'company': company,
             'application_user': USER,
             'default_language': en_us,
             'guest_user': guest_user,
-            'currencies': [('set', [usd])],
-        })
+            'currencies': [('set', [usd.id])],
+        }])[0]
 
     def test_0010_get_html(self):
         """
@@ -316,26 +336,26 @@ class TestGetHtml(NereidTestCase):
         with Transaction().start(DB_NAME, USER, CONTEXT):
             site = self.setup_defaults()
 
-            banner_category = self.BannerCategory.create({
+            banner_category, = self.BannerCategory.create([{
                 'name': 'Category A',
                 'website': site,
-            })
+            }])
 
-            image = self.Folder.create({
+            image, = self.Folder.create([{
                 'description': 'image',
                 'folder_name': 'image'
-            })
-            file = self.File.create({
+            }])
+            file, = self.File.create([{
                 'name': 'logo',
                 'folder': image,
-            })
-            self.Banner.create({
+            }])
+            self.Banner.create([{
                 'name': 'Test Banner1',
                 'category': banner_category,
                 'type': 'image',
                 'file': file,
                 'state': 'published'
-            })
+            }])
 
             app = self.get_app()
             with app.test_client() as c:
@@ -353,11 +373,11 @@ class TestGetHtml(NereidTestCase):
         with Transaction().start(DB_NAME, USER, CONTEXT):
             self.setup_defaults()
 
-            banner_category = self.BannerCategory.create({
+            banner_category, = self.BannerCategory.create([{
                 'name': 'Category B'
-            })
+            }])
 
-            banner = self.Banner.create({
+            banner, = self.Banner.create([{
                 'name': 'Test Banner2',
                 'category': banner_category,
                 'type': 'remote_image',
@@ -365,7 +385,7 @@ class TestGetHtml(NereidTestCase):
                     'http://profile.ak.fbcdn.net/hprofile-ak-snc4'
                     '/187819_122589627793765_7532740_n.jpg',
                 'state': 'published'
-            })
+            }])
             rv = banner.get_html()
             html = objectify.fromstring(rv)
             self.assertEqual(
@@ -379,17 +399,17 @@ class TestGetHtml(NereidTestCase):
         with Transaction().start(DB_NAME, USER, CONTEXT):
             self.setup_defaults()
 
-            banner_category = self.BannerCategory.create({
+            banner_category, = self.BannerCategory.create([{
                 'name': 'Category C'
-            })
+            }])
 
-            banner = self.Banner.create({
+            banner, = self.Banner.create([{
                 'name': 'Test Banner3',
                 'category': banner_category,
                 'type': 'custom_code',
                 'custom_code': 'Custom code for Test Banner3',
                 'state': 'published'
-            })
+            }])
             rv = banner.get_html()
             self.assertEqual(rv, banner.custom_code)
 
