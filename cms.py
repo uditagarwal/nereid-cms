@@ -7,7 +7,6 @@
     :license: GPLv3, see LICENSE for more details
 
 '''
-
 from string import Template
 
 from nereid import render_template, current_app, cache, request
@@ -22,12 +21,14 @@ from trytond.transaction import Transaction
 from trytond.pool import Pool
 
 __all__ = [
-        'CMSLink', 'Menu', 'MenuItem', 'BannerCategory', 'Banner',
-        'ArticleCategory', 'Article', 'ArticleAttribute',
+    'CMSLink', 'Menu', 'MenuItem', 'BannerCategory', 'Banner',
+    'ArticleCategory', 'Article', 'ArticleAttribute',
 ]
 
+
 class CMSLink(ModelSQL, ModelView):
-    """CMS link
+    """
+    CMS link
 
     (c) 2010 Tryton Project
     """
@@ -59,7 +60,8 @@ class Menu(ModelSQL, ModelView):
     "Nereid CMS Menu"
     __name__ = 'nereid.cms.menu'
 
-    name = fields.Char('Name', required=True,
+    name = fields.Char(
+        'Name', required=True,
         on_change=['name', 'unique_identifier'],
         depends=['name', 'unique_identifier']
     )
@@ -71,30 +73,38 @@ class Menu(ModelSQL, ModelView):
     active = fields.Boolean('Active')
 
     model = fields.Many2One('ir.model', 'Tryton Model', required=True)
-    children_field = fields.Many2One('ir.model.field', 'Children',
+    children_field = fields.Many2One(
+        'ir.model.field', 'Children',
         depends=['model', 'ttype'],
         domain=[
             ('model', '=', Eval('model')),
             ('ttype', '=', 'one2many')
-        ], required=True)
-    uri_field = fields.Many2One('ir.model.field', 'URI Field',
+        ], required=True
+    )
+    uri_field = fields.Many2One(
+        'ir.model.field', 'URI Field',
         depends=['model', 'ttype'],
         domain=[
             ('model', '=', Eval('model')),
             ('ttype', '=', 'char')
-        ], required=True)
-    title_field = fields.Many2One('ir.model.field', 'Title Field',
+        ], required=True
+    )
+    title_field = fields.Many2One(
+        'ir.model.field', 'Title Field',
         depends=['model', 'ttype'],
         domain=[
             ('model', '=', Eval('model')),
             ('ttype', '=', 'char')
-        ], required=True)
-    identifier_field = fields.Many2One('ir.model.field', 'Identifier Field',
+        ], required=True
+    )
+    identifier_field = fields.Many2One(
+        'ir.model.field', 'Identifier Field',
         depends=['model', 'ttype'],
         domain=[
             ('model', '=', Eval('model')),
             ('ttype', '=', 'char')
-        ], required=True)
+        ], required=True
+    )
 
     @staticmethod
     def default_active():
@@ -127,16 +137,17 @@ class Menu(ModelSQL, ModelView):
         else:
             uri = getattr(menu_item, self.uri_field.name)
         return {
-                'name' : getattr(menu_item, self.title_field.name),
-                'uri' : uri,
-            }
+            'name': getattr(menu_item, self.title_field.name),
+            'uri': uri,
+        }
 
     def _generate_menu_tree(self, menu_item):
         """
         :param menu_item: Active record of the root menu_item
         """
-        result = {'children' : [ ]}
+        result = {'children': []}
         result.update(self._menu_item_to_dict(menu_item))
+
         # If children exist iteratively call _generate_..
         children = getattr(menu_item, self.children_field.name)
         if children:
@@ -193,7 +204,7 @@ class Menu(ModelSQL, ModelView):
         rv = cache.get(cache_key)
         if rv is None:
             rv = menu._generate_menu_tree(root_menu_item)
-            cache.set(cache_key, rv, 60*60)
+            cache.set(cache_key, rv, 60 * 60)
         return rv
 
     def on_change_name(self):
@@ -219,27 +230,33 @@ class MenuItem(ModelSQL, ModelView):
     __name__ = 'nereid.cms.menuitem'
     _rec_name = 'unique_name'
 
-    title = fields.Char('Title', required=True,
-        on_change=['title', 'unique_name'], select=True, translate=True)
+    title = fields.Char(
+        'Title', required=True,
+        on_change=['title', 'unique_name'], select=True, translate=True
+    )
     unique_name = fields.Char('Unique Name', required=True, select=True)
     link = fields.Char('Link')
     use_url_builder = fields.Boolean('Use URL Builder')
-    url_for_build = fields.Many2One('nereid.url_rule', 'Rule',
+    url_for_build = fields.Many2One(
+        'nereid.url_rule', 'Rule',
         depends=['use_url_builder'],
         states={
             'required': Equal(Bool(Eval('use_url_builder')), True),
             'invisible': Not(Equal(Bool(Eval('use_url_builder')), True)),
-            })
-    values_to_build = fields.Char('Values', depends=['use_url_builder'],
+        }
+    )
+    values_to_build = fields.Char(
+        'Values', depends=['use_url_builder'],
         states={
             'required': Equal(Bool(Eval('use_url_builder')), True),
             'invisible': Not(Equal(Bool(Eval('use_url_builder')), True)),
-            }
-        )
+        }
+    )
     full_url = fields.Function(fields.Char('Full URL'), 'get_full_url')
     parent = fields.Many2One('nereid.cms.menuitem', 'Parent Menuitem',)
-    child = fields.One2Many('nereid.cms.menuitem', 'parent',
-        string='Child Menu Items')
+    child = fields.One2Many(
+        'nereid.cms.menuitem', 'parent', string='Child Menu Items'
+    )
     active = fields.Boolean('Active')
     sequence = fields.Integer('Sequence', required=True, select=True)
 
@@ -296,8 +313,11 @@ class BannerCategory(ModelSQL, ModelView):
     name = fields.Char('Name', required=True, select=True)
     banners = fields.One2Many('nereid.cms.banner', 'category', 'Banners')
     website = fields.Many2One('nereid.website', 'WebSite', select=True)
-    published_banners = fields.Function(fields.One2Many('nereid.cms.banner',
-        'category', 'Published Banners'), 'get_published_banners')
+    published_banners = fields.Function(
+        fields.One2Many(
+            'nereid.cms.banner', 'category', 'Published Banners'
+        ), 'get_published_banners'
+    )
 
     @classmethod
     def get_banner_category(cls, uri, silent=True):
@@ -306,7 +326,7 @@ class BannerCategory(ModelSQL, ModelView):
         category = cls.search([
             ('name', '=', uri),
             ('website', '=', request.nereid_website.id)
-            ], limit=1)
+        ], limit=1)
         if not category and not silent:
             raise RuntimeError("Banner category %s not found" % uri)
         return category[0] if category else None
@@ -343,8 +363,9 @@ class Banner(ModelSQL, ModelView):
 
     name = fields.Char('Name', required=True, select=True)
     description = fields.Char('Description')
-    category = fields.Many2One('nereid.cms.banner.category', 'Category',
-        required=True, select=True)
+    category = fields.Many2One(
+        'nereid.cms.banner.category', 'Category', required=True, select=True
+    )
     sequence = fields.Integer('Sequence', select=True)
 
     # Type related data
@@ -352,45 +373,59 @@ class Banner(ModelSQL, ModelView):
         ('image', 'Image'),
         ('remote_image', 'Remote Image'),
         ('custom_code', 'Custom Code'),
-        ], 'Type', required=True)
-    file = fields.Many2One('nereid.static.file', 'File',
-        states = {
+    ], 'Type', required=True)
+    file = fields.Many2One(
+        'nereid.static.file', 'File',
+        states={
             'required': Equal(Eval('type'), 'image'),
             'invisible': Not(Equal(Eval('type'), 'image'))
-            })
-    remote_image_url = fields.Char('Remote Image URL',
-        states = {
+        }
+    )
+    remote_image_url = fields.Char(
+        'Remote Image URL',
+        states={
             'required': Equal(Eval('type'), 'remote_image'),
             'invisible': Not(Equal(Eval('type'), 'remote_image'))
-            })
-    custom_code = fields.Text('Custom Code', translate=True,
+        }
+    )
+    custom_code = fields.Text(
+        'Custom Code', translate=True,
         states={
             'required': Equal(Eval('type'), 'custom_code'),
             'invisible': Not(Equal(Eval('type'), 'custom_code'))
-            })
+        }
+    )
 
     # Presentation related Data
-    height = fields.Integer('Height',
-        states = {
+    height = fields.Integer(
+        'Height',
+        states={
             'invisible': Not(In(Eval('type'), ['image', 'remote_image']))
-            })
-    width = fields.Integer('Width',
-        states = {
+        }
+    )
+    width = fields.Integer(
+        'Width',
+        states={
             'invisible': Not(In(Eval('type'), ['image', 'remote_image']))
-            })
-    alternative_text = fields.Char('Alternative Text',
-        states = {
+        }
+    )
+    alternative_text = fields.Char(
+        'Alternative Text',
+        states={
             'invisible': Not(In(Eval('type'), ['image', 'remote_image']))
-            })
-    click_url = fields.Char('Click URL', translate=True,
-        states = {
+        }
+    )
+    click_url = fields.Char(
+        'Click URL', translate=True,
+        states={
             'invisible': Not(In(Eval('type'), ['image', 'remote_image']))
-            })
+        }
+    )
 
     state = fields.Selection([
         ('published', 'Published'),
         ('archived', 'Archived')
-        ], 'State', required=True, select=True)
+    ], 'State', required=True, select=True)
     reference = fields.Reference('Reference', selection='links_get')
 
     @classmethod
@@ -398,14 +433,17 @@ class Banner(ModelSQL, ModelView):
         super(Banner, cls).__setup__()
         cls._order.insert(0, ('sequence', 'ASC'))
 
-
     def get_html(self):
         """Return the HTML content"""
         StaticFile = Pool().get('nereid.static.file')
 
-        banner = self.read([self], ['type', 'click_url', 'file',
-            'remote_image_url', 'custom_code', 'height', 'width',
-            'alternative_text', 'click_url'])[0]
+        banner = self.read(
+            [self], [
+                'type', 'click_url', 'file',
+                'remote_image_url', 'custom_code', 'height', 'width',
+                'alternative_text', 'click_url'
+            ]
+        )[0]
 
         if banner['type'] == 'image':
             # replace the `file` in the dictionary with the complete url
@@ -414,15 +452,16 @@ class Banner(ModelSQL, ModelView):
             banner['file'] = file.url
             image = Template(
                 u'<a href="$click_url">'
-                    u'<img src="$file" alt="$alternative_text"'
-                    u' width="$width" height="$height"/>'
-                u'</a>')
+                u'<img src="$file" alt="$alternative_text"'
+                u' width="$width" height="$height"/>'
+                u'</a>'
+            )
             return image.substitute(**banner)
         elif banner['type'] == 'remote_image':
             image = Template(
                 u'<a href="$click_url">'
-                    u'<img src="$remote_image_url" alt="$alternative_text"'
-                    u' width="$width" height="$height"/>'
+                u'<img src="$remote_image_url" alt="$alternative_text"'
+                u' width="$width" height="$height"/>'
                 u'</a>')
             return image.substitute(**banner)
         elif banner['type'] == 'custom_code':
@@ -441,10 +480,14 @@ class ArticleCategory(ModelSQL, ModelView):
 
     per_page = 10
 
-    title = fields.Char('Title', size=100, translate=True,
-        required=True, on_change=['title', 'unique_name'], select=True)
-    unique_name = fields.Char('Unique Name', required=True, select=True,
-        help='Unique Name is used as the uri.')
+    title = fields.Char(
+        'Title', size=100, translate=True,
+        required=True, on_change=['title', 'unique_name'], select=True
+    )
+    unique_name = fields.Char(
+        'Unique Name', required=True, select=True,
+        help='Unique Name is used as the uri.'
+    )
     active = fields.Boolean('Active', select=True)
     description = fields.Text('Description', translate=True)
     template = fields.Char('Template', required=True)
@@ -543,8 +586,10 @@ class Article(ModelSQL, ModelView):
     content = fields.Text('Content', required=True, translate=True)
     template = fields.Char('Template', required=True)
     active = fields.Boolean('Active', select=True)
-    category = fields.Many2One('nereid.cms.article.category', 'Category',
-        required=True, select=True)
+    category = fields.Many2One(
+        'nereid.cms.article.category', 'Category',
+        required=True, select=True
+    )
     image = fields.Many2One('nereid.static.file', 'Image')
     author = fields.Many2One('company.employee', 'Author')
     published_on = fields.Date('Published On')
@@ -643,13 +688,13 @@ class ArticleAttribute(ModelSQL, ModelView):
         ('facebook', 'Facebook'),
         ('twitter', 'Twitter'),
         ('github', 'Github'),
-        ('linked-in','Linked-in'),
-        ('blogger','Blogger'),
+        ('linked-in', 'Linked-in'),
+        ('blogger', 'Blogger'),
         ('tumblr', 'Tumblr'),
         ('website', 'Website'),
         ('phone', 'Phone'),
     ], 'Name', required=True, select=True)
-    value =  fields.Char('Value', required=True)
+    value = fields.Char('Value', required=True)
     article = fields.Many2One(
         'nereid.cms.article', 'Article', ondelete='CASCADE', required=True,
         select=True,
