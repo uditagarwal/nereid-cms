@@ -33,6 +33,7 @@ class TestCMS(NereidTestCase):
         self.url_map_obj = POOL.get('nereid.url_map')
         self.language_obj = POOL.get('ir.lang')
         self.nereid_website_obj = POOL.get('nereid.website')
+        self.ArticleAttribute = POOL.get('nereid.cms.article.attribute')
 
         self.templates = {
             'localhost/home.jinja':
@@ -158,6 +159,37 @@ class TestCMS(NereidTestCase):
             with app.test_client() as c:
                 response = c.get('en_US/sitemaps/article-category-1.xml')
                 self.assertEqual(response.status_code, 200)
+
+    def test_0050_article_attribute(self):
+        '''
+        Test creating and deleting an Article with attributes
+        '''
+        with Transaction().start(DB_NAME, USER, CONTEXT):
+            article_category = self.article_category_obj.create({
+                'title': 'Test Categ',
+                'unique_name': 'test-categ',
+            })
+
+            article1 = self.article_obj.create({
+                'title': 'Test Article',
+                'uri': 'test-article',
+                'content': 'Test Content',
+                'sequence': 10,
+                'category': article_category,
+                'attributes': [
+                    ('create', {
+                        'name': 'google+',
+                        'value': 'abc',
+                    })
+                ]
+            })
+            # Checks an article is created with attributes
+            self.assert_(article1.id)
+            self.assertEqual(self.ArticleAttribute.search([], count=True), 1)
+            # Checks that if an article is deleted then respective attributes
+            # are also deleted.
+            self.article_obj.delete([article1])
+            self.assertEqual(self.ArticleAttribute.search([], count=True), 0)
 
 
 def suite():

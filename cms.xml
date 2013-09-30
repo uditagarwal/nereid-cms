@@ -295,35 +295,26 @@
                             <label name="image"/>
                             <field name="image"/>
                         </group>
-                        <separator 
-                            colspan="4" 
-                            string="Content" 
-                            id="sepr_body"/>
-                        <separator 
-                            colspan="2" 
-                            string="Parameters" 
-                            id="sepr_params"/>
-                        <field name="content" colspan="4" />
-                        <group col="4" id="group_params">
-                            <label name="sequence" />
-                            <field name="sequence" />
-                            <newline/>
-                            <label name="author" />
-                            <field name="author" />
-                            <newline/>
-                            <label name="published_on" />
-                            <field name="published_on" />
-                            <newline/>
-                            <label name="banner" />
-                            <field name="banner" />
-                            <newline/>
-                            <separator 
-                                colspan="2" 
-                                string="Short Description" 
-                                id="sepr_description"/>
-                            <newline/>
-                            <field name="description" colspan="2"/>
-                        </group>
+                        <notebook colspan="6">                            
+                            <page string="Content" id="content">
+                                <field name="content"/>
+                            </page>
+                            <page string="Parameters" id="parameters">
+                                  <label name="sequence" />
+                                  <field name="sequence" />
+                                  <label name="author" />
+                                  <field name="author" />
+                                  <label name="published_on" />
+                                  <field name="published_on" />
+                                  <label name="banner" />
+                                  <field name="banner" />
+                                  <separator name="description" colspan="4"/>
+                                  <field name="description" colspan="4"/>
+                            </page>
+                            <page string="Attributes" id="attributes">
+                                <field name="attributes"/>
+                            </page>
+                        </notebook>
                     </form>
                 ]]>
             </field>

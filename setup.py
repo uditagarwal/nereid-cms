@@ -96,38 +96,39 @@ minor_version = int(minor_version)
 requires = []
 for dep in info.get('depends', []):
     if not re.match(r'(ir|res|webdav)(\W|$)', dep):
-        requires.append('trytond_%s >= %s.%s, < %s.%s' %
-                (dep, major_version, minor_version, major_version,
-                    minor_version + 1))
-requires.append('trytond >= %s.%s, < %s.%s' %
-        (major_version, minor_version, major_version, minor_version + 1))
+        requires.append(
+            'trytond_%s >= %s.%s, < %s.%s' % (
+                dep, major_version, minor_version, major_version,
+                minor_version + 1
+            )
+        )
+requires.append(
+    'trytond >= %s.%s, < %s.%s' % (
+        major_version, minor_version, major_version, minor_version + 1
+    )
+)
 tests_require = [
-    'trytond_product >= %s.%s, < %s.%s' %
-            (major_version, minor_version, major_version, minor_version + 1)
+    'trytond_product >= %s.%s, < %s.%s' % (
+        major_version, minor_version, major_version, minor_version + 1
+    )
 ]
 
-setup(name='trytond_nereid_cms',
+setup(
+    name='trytond_nereid_cms',
     version=info.get('version', '0.0.1'),
-    description=info.get('description', ''),
-    author=info.get('author', ''),
-    author_email=info.get('email', ''),
-    url=info.get('website', ''),
-    download_url="http://downloads.openlabs.co.in/" + \
-            info.get('version', '0.0.1').rsplit('.', 1)[0] + '/',
+    description='Tryton Nereid CMS',
+    author='Openlabs Technologies & Consulting (P) Limited',
+    author_email='info@openlabs.co.in',
+    url='http://www.openlabs.co.in/',
     package_dir={'trytond.modules.nereid_cms': '.'},
     packages=[
         'trytond.modules.nereid_cms',
         'trytond.modules.nereid_cms.tests',
     ],
     package_data={
-        'trytond.modules.nereid_cms': info.get('xml', []) \
-            + [
-                'tryton.cfg',
-                'locale/*.po',
-                '*.odt',
-                'icons/*.svg',
-                'view/*.xml',
-            ],
+        'trytond.modules.nereid_cms': info.get('xml', []) + [
+            'tryton.cfg', 'locale/*.po', '*.odt', 'icons/*.svg', 'view/*.xml',
+        ],
     },
     classifiers=[
         'Development Status :: 4 - Beta',

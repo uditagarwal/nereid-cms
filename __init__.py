@@ -9,7 +9,10 @@
 '''
 
 from trytond.pool import Pool
-from .cms import *
+from .cms import (
+    CMSLink, Menu, MenuItem, BannerCategory, Banner, ArticleCategory,
+    Article, ArticleAttribute
+)
 
 
 def register():
@@ -24,4 +27,6 @@ def register():
         Banner,
         ArticleCategory,
         Article,
-        module='nereid_cms', type_='model')
+        ArticleAttribute,
+        module='nereid_cms', type_='model'
+    )

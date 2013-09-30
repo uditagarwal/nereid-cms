@@ -14,7 +14,6 @@ from .test_cms import TestCMS
 from .test_menu_for import TestMenuFor
 
 
-
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTests([
