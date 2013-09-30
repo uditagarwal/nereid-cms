@@ -29,59 +29,69 @@ class TestMenuFor(NereidTestCase):
         """
         Setup the defaults
         """
-        usd = self.currency_obj.create({
+        usd, = self.Currency.create([{
             'name': 'US Dollar',
             'code': 'USD',
             'symbol': '$',
-        })
-        company_id = self.company_obj.create({
-            'name': 'Openlabs',
+        }])
+        company_party, = self.Party.create([{
+            'name': 'Openlabs'
+        }])
+        company, = self.Company.create([{
+            'party': company_party,
             'currency': usd
-        })
-        guest_user = self.nereid_user_obj.create({
+        }])
+        guest_party, = self.Party.create([{
             'name': 'Guest User',
+        }])
+        guest_user, = self.NereidUser.create([{
+            'party': guest_party,
             'display_name': 'Guest User',
             'email': 'guest@openlabs.co.in',
             'password': 'password',
-            'company': company_id,
-        })
-        self.registered_user_id = self.nereid_user_obj.create({
-            'name': 'Registered User',
+            'company': company.id,
+        }])
+
+        party1, = self.Party.create([{
+            'name': 'Registered User'
+        }])
+        self.registered_user, = self.NereidUser.create([{
+            'party': party1.id,
             'display_name': 'Registered User',
             'email': 'email@example.com',
             'password': 'password',
-            'company': company_id,
-        })
+            'company': company.id,
+        }])
 
         # Create website
-        url_map_id, = self.url_map_obj.search([], limit=1)
-        en_us, = self.language_obj.search([('code', '=', 'en_US')])
-        self.site1 = self.nereid_website_obj.create({
+        url_map, = self.UrlMap.search([], limit=1)
+        en_us, = self.Language.search([('code', '=', 'en_US')])
+        self.site1, = self.NereidWebsite.create([{
             'name': 'localhost',
-            'url_map': url_map_id,
-            'company': company_id,
+            'url_map': url_map.id,
+            'company': company.id,
             'application_user': USER,
             'default_language': en_us,
             'guest_user': guest_user,
-            'currencies': [('set', [usd])],
-        })
+            'currencies': [('set', [usd.id])],
+        }])
 
     def setUp(self):
         trytond.tests.test_tryton.install_module('nereid_cms')
         trytond.tests.test_tryton.install_module('product')
 
-        self.currency_obj = POOL.get('currency.currency')
-        self.company_obj = POOL.get('company.company')
-        self.nereid_user_obj = POOL.get('nereid.user')
-        self.url_map_obj = POOL.get('nereid.url_map')
-        self.language_obj = POOL.get('ir.lang')
-        self.nereid_website_obj = POOL.get('nereid.website')
-
-        self.menu_obj = POOL.get('nereid.cms.menu')
+        self.Currency = POOL.get('currency.currency')
+        self.Company = POOL.get('company.company')
+        self.NereidUser = POOL.get('nereid.user')
+        self.UrlMap = POOL.get('nereid.url_map')
+        self.Language = POOL.get('ir.lang')
+        self.NereidWebsite = POOL.get('nereid.website')
+        self.Party = POOL.get('party.party')
+        self.Menu = POOL.get('nereid.cms.menu')
 
         self.templates = {
-            'localhost/home.jinja':
-                '{{ menu_for("identifier", "category-name")|safe }}',
+            'home.jinja':
+                '{{ menu_for("identifier", "Category1")|safe }}',
         }
 
     def test_0010_menu_for(self):
@@ -96,9 +106,9 @@ class TestMenuFor(NereidTestCase):
             Model = POOL.get('ir.model')
             ModelField = POOL.get('ir.model.field')
 
-            ProductCategory.create({
+            ProductCategory.create([{
                 'name': 'Category1'
-            })
+            }])
             model = Model.search([
                 ('model', '=', 'product.category')
             ])
@@ -110,7 +120,7 @@ class TestMenuFor(NereidTestCase):
                 ('ttype', '=', 'one2many'),
                 ('model', '=', model[0])
             ])
-            self.menu_obj.create({
+            self.Menu.create([{
                 'name': 'menu1',
                 'unique_identifier': 'identifier',
                 'website': self.site1.id,
@@ -119,17 +129,12 @@ class TestMenuFor(NereidTestCase):
                 'uri_field': fields[0].id,
                 'title_field': fields[0].id,
                 'identifier_field': fields[0].id
-            })
-
-            self.templates = {
-                'localhost/home.jinja':
-                    '{{ menu_for("identifier", "Category1")|safe }}',
-            }
+            }])
 
             with app.test_client() as c:
                 response = c.get('/en_US/')
                 rv = literal_eval(response.data)
-            self.assertTrue(rv['uri'], 'Category1')
+            self.assertTrue(rv['uri'], 'category-name')
 
 
 def suite():
