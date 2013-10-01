@@ -22,27 +22,27 @@ class TestCMS(NereidTestCase):
     def setUp(self):
         trytond.tests.test_tryton.install_module('nereid_cms')
 
-        self.currency_obj = POOL.get('currency.currency')
-        self.site_obj = POOL.get('nereid.website')
-        self.article_category_obj = POOL.get('nereid.cms.article.category')
-        self.article_obj = POOL.get('nereid.cms.article')
-        self.folder_obj = POOL.get('nereid.static.folder')
-        self.file_obj = POOL.get('nereid.static.file')
-        self.company_obj = POOL.get('company.company')
-        self.nereid_user_obj = POOL.get('nereid.user')
-        self.url_map_obj = POOL.get('nereid.url_map')
-        self.language_obj = POOL.get('ir.lang')
-        self.nereid_website_obj = POOL.get('nereid.website')
+        self.Currency = POOL.get('currency.currency')
+        self.ArticleCategory = POOL.get('nereid.cms.article.category')
+        self.Article = POOL.get('nereid.cms.article')
+        self.Folder = POOL.get('nereid.static.folder')
+        self.File = POOL.get('nereid.static.file')
+        self.Company = POOL.get('company.company')
+        self.NereidUser = POOL.get('nereid.user')
+        self.UrlMap = POOL.get('nereid.url_map')
+        self.Language = POOL.get('ir.lang')
+        self.Website = POOL.get('nereid.website')
         self.ArticleAttribute = POOL.get('nereid.cms.article.attribute')
+        self.Party = POOL.get('party.party')
 
         self.templates = {
-            'localhost/home.jinja':
+            'home.jinja':
             '''{% for banner in get_banner_category("test-banners").banners %}
             {{ banner.get_html(banner.id)|safe }}
             {% endfor %}
             ''',
-            'localhost/article-category.jinja': '{{ articles|length }}',
-            'localhost/article.jinja': '{{ article.content }}',
+            'article-category.jinja': '{{ articles|length }}',
+            'article.jinja': '{{ article.content }}',
         }
 
     def get_template_source(self, name):
@@ -55,56 +55,66 @@ class TestCMS(NereidTestCase):
         """
         Setup the defaults
         """
-        usd = self.currency_obj.create({
+        usd, = self.Currency.create([{
             'name': 'US Dollar',
             'code': 'USD',
             'symbol': '$',
-        })
-        company_id = self.company_obj.create({
-            'name': 'Openlabs',
+        }])
+        company_party, = self.Party.create([{
+            'name': 'Openlabs'
+        }])
+        company, = self.Company.create([{
+            'party': company_party,
             'currency': usd
-        })
-        guest_user = self.nereid_user_obj.create({
+        }])
+        guest_party, = self.Party.create([{
             'name': 'Guest User',
+        }])
+        guest_user, = self.NereidUser.create([{
+            'party': guest_party,
             'display_name': 'Guest User',
             'email': 'guest@openlabs.co.in',
             'password': 'password',
-            'company': company_id,
-        })
-        self.registered_user_id = self.nereid_user_obj.create({
-            'name': 'Registered User',
+            'company': company.id,
+        }])
+
+        registered_party, = self.Party.create([{
+            'name': 'Registered User'
+        }])
+        self.registered_user, = self.NereidUser.create([{
+            'party': registered_party,
             'display_name': 'Registered User',
             'email': 'email@example.com',
             'password': 'password',
-            'company': company_id,
-        })
+            'company': company.id,
+        }])
 
         # Create website
-        url_map_id, = self.url_map_obj.search([], limit=1)
-        en_us, = self.language_obj.search([('code', '=', 'en_US')])
-        self.nereid_website_obj.create({
+        url_map, = self.UrlMap.search([], limit=1)
+        en_us, = self.Language.search([('code', '=', 'en_US')])
+        self.Website.create([{
             'name': 'localhost',
-            'url_map': url_map_id,
-            'company': company_id,
+            'url_map': url_map,
+            'company': company.id,
             'application_user': USER,
             'default_language': en_us,
             'guest_user': guest_user,
-            'currencies': [('set', [usd])],
-        })
+            'currencies': [('set', [usd.id])],
+        }])
 
         # Create an article category
-        article_categ = self.article_category_obj.create({
+        article_categ, = self.ArticleCategory.create([{
             'title': 'Test Categ',
             'unique_name': 'test-categ',
-        })
+        }])
 
-        self.article_obj.create({
+        self.Article.create([{
             'title': 'Test Article',
             'uri': 'test-article',
             'content': 'Test Content',
             'sequence': 10,
             'category': article_categ,
-        })
+        }])
 
     def test0005views(self):
         '''
@@ -165,30 +175,30 @@ class TestCMS(NereidTestCase):
         Test creating and deleting an Article with attributes
         '''
         with Transaction().start(DB_NAME, USER, CONTEXT):
-            article_category = self.article_category_obj.create({
+            article_category, = self.ArticleCategory.create([{
                 'title': 'Test Categ',
                 'unique_name': 'test-categ',
-            })
+            }])
 
-            article1 = self.article_obj.create({
+            article1, = self.Article.create([{
                 'title': 'Test Article',
-                'uri': 'test-article',
+                'uri': 'Test Article',
                 'content': 'Test Content',
                 'sequence': 10,
-                'category': article_category,
+                'category': article_category.id,
                 'attributes': [
-                    ('create', {
+                    ('create', [{
                         'name': 'google+',
                         'value': 'abc',
-                    })
+                    }])
                 ]
-            })
+            }])
             # Checks an article is created with attributes
             self.assert_(article1.id)
             self.assertEqual(self.ArticleAttribute.search([], count=True), 1)
             # Checks that if an article is deleted then respective attributes
             # are also deleted.
-            self.article_obj.delete([article1])
+            self.Article.delete([article1])
             self.assertEqual(self.ArticleAttribute.search([], count=True), 0)
 
 

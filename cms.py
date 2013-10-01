@@ -75,7 +75,7 @@ class Menu(ModelSQL, ModelView):
     model = fields.Many2One('ir.model', 'Tryton Model', required=True)
     children_field = fields.Many2One(
         'ir.model.field', 'Children',
-        depends=['model', 'ttype'],
+        depends=['model'],
         domain=[
             ('model', '=', Eval('model')),
             ('ttype', '=', 'one2many')
@@ -83,7 +83,7 @@ class Menu(ModelSQL, ModelView):
     )
     uri_field = fields.Many2One(
         'ir.model.field', 'URI Field',
-        depends=['model', 'ttype'],
+        depends=['model'],
         domain=[
             ('model', '=', Eval('model')),
             ('ttype', '=', 'char')
@@ -91,7 +91,7 @@ class Menu(ModelSQL, ModelView):
     )
     title_field = fields.Many2One(
         'ir.model.field', 'Title Field',
-        depends=['model', 'ttype'],
+        depends=['model'],
         domain=[
             ('model', '=', Eval('model')),
             ('ttype', '=', 'char')
@@ -99,7 +99,7 @@ class Menu(ModelSQL, ModelView):
     )
     identifier_field = fields.Many2One(
         'ir.model.field', 'Identifier Field',
-        depends=['model', 'ttype'],
+        depends=['model'],
         domain=[
             ('model', '=', Eval('model')),
             ('ttype', '=', 'char')
@@ -470,7 +470,7 @@ class Banner(ModelSQL, ModelView):
     @staticmethod
     def links_get():
         CMSLink = Pool().get('nereid.cms.link')
-        return [(x.model, x.name) for x in CMSLink.search([])]
+        return [('', '')] + [(x.model, x.name) for x in CMSLink.search([])]
 
 
 class ArticleCategory(ModelSQL, ModelView):
@@ -611,7 +611,7 @@ class Article(ModelSQL, ModelView):
     @staticmethod
     def links_get():
         CMSLink = Pool().get('nereid.cms.link')
-        return [(x.model, x.name) for x in CMSLink.search([])]
+        return [('', '')] + [(x.model, x.name) for x in CMSLink.search([])]
 
     @staticmethod
     def default_active():
@@ -643,7 +643,7 @@ class Article(ModelSQL, ModelView):
                 employee_id = user.employee.id
         if employee_id:
             return employee_id
-        return False
+        return None
 
     @staticmethod
     def default_published_on():
@@ -684,6 +684,7 @@ class ArticleAttribute(ModelSQL, ModelView):
     _rec_name = 'value'
 
     name = fields.Selection([
+        ('', None),
         ('google+', 'Google+'),
         ('facebook', 'Facebook'),
         ('twitter', 'Twitter'),
