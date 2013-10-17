@@ -19,84 +19,15 @@ from trytond.transaction import Transaction
 class TestMenuFor(NereidTestCase):
     """Test menu_for"""
 
-    @classmethod
-    def setUpClass(cls):
-        super(TestMenuFor, cls).setUpClass()
-        testing_proxy.install_module('nereid_cms')
-        testing_proxy.install_module('product')
-
-        with Transaction().start(testing_proxy.db_name, 1, None) as txn:
-            menu_obj = Pool().get('nereid.cms.menu')
-            website_obj = Pool().get('nereid.website')
-            url_obj = Pool().get('nereid.url_map')
-            language_obj = Pool().get('ir.lang')
-            model_obj = Pool().get('ir.model')
-            model_field_obj = Pool().get('ir.model.field')
-            prod_categ_obj = Pool().get('product.category')
-            article_categ_obj = Pool().get('nereid.cms.article.category')
-            article_obj = testing_proxy.pool.get('nereid.cms.article')
-
-            # Create company
-            cls.company = testing_proxy.create_company('Test Company')
-            cls.guest_user = testing_proxy.create_guest_user(company=cls.company)
-
-            url_map = url_obj.create({
-                'name': 'Default'
-            })
-            language, = language_obj.search([
-                ('code', '=', 'en_US')
-            ])
-            prod_categ = prod_categ_obj.create({
-                'name': 'Category1'
-            })
-            category_id = prod_categ_obj.search([
-                ('name', '=', 'Category1')
-            ])
-            cls.site1 = testing_proxy.create_site('localhost',
-                application_user = 1, guest_user=cls.guest_user
-            )
-            cls.site2 = testing_proxy.create_site('test_site2',
-                application_user = 1, guest_user=cls.guest_user
-            )
-            model = model_obj.search([
-                ('model', '=', 'product.category')
-            ])
-            fields = model_field_obj.search([
-                ('ttype', '=', 'char'),
-                ('model', '=', model[0])
-            ])
-            children_field = model_field_obj.search([
-                ('ttype', '=', 'one2many'),
-                ('model', '=', model[0])
-            ])
-            menu_id1 = menu_obj.create({
-                'name': 'menu1',
-                'unique_identifier': 'identifier',
-                'website': cls.site1,
-                'model': model[0],
-                'children_field': children_field[0],
-                'uri_field': fields[0],
-                'title_field': fields[0],
-                'identifier_field': fields[0]
-            })
-            menu_id2 = menu_obj.create({
-                'name': 'menu2',
-                'unique_identifier': 'identifier',
-                'website': cls.site2,
-                'model': model[0],
-                'children_field': children_field[0],
-                'uri_field': fields[0],
-                'title_field': fields[0],
-                'identifier_field': fields[0]
-            })
-
-            menu1 = menu_obj.browse(menu_id1)
-            website1 = website_obj.browse(cls.site1)
-            menu2 = menu_obj.browse(menu_id2)
-            website2 = website_obj.browse(cls.site2)
-            category = prod_categ_obj.browse(category_id)
-
-
+    def get_template_source(self, name):
+        """
+        Return templates
+        """
+        self.templates = {
+            'localhost/home.jinja':
+                '{{ menu_for("identifier", "Category1")|safe }}',
+        }
+        return self.templates.get(name)
 
     def setup_defaults(self):
         """
@@ -129,7 +60,7 @@ class TestMenuFor(NereidTestCase):
         # Create website
         url_map_id, = self.url_map_obj.search([], limit=1)
         en_us, = self.language_obj.search([('code', '=', 'en_US')])
-        self.nereid_website_obj.create({
+        self.site = self.nereid_website_obj.create({
             'name': 'localhost',
             'url_map': url_map_id,
             'company': company_id,
@@ -140,6 +71,7 @@ class TestMenuFor(NereidTestCase):
         })
 
     def setUp(self):
+        trytond.tests.test_tryton.install_module('product')
         trytond.tests.test_tryton.install_module('nereid_cms')
 
         self.currency_obj = POOL.get('currency.currency')
@@ -148,20 +80,43 @@ class TestMenuFor(NereidTestCase):
         self.url_map_obj = POOL.get('nereid.url_map')
         self.language_obj = POOL.get('ir.lang')
         self.nereid_website_obj = POOL.get('nereid.website')
-
         self.menu_obj = POOL.get('nereid.cms.menu')
-
-        self.templates = {
-            'localhost/home.jinja':
-                '{{ menu_for("identifier", "category-name")|safe }}',
-        }
 
     def test_0010_menu_for(self):
         """Two different website, having same unique identifier in
         nereid.cms.menu
         """
+        menu_obj = POOL.get('nereid.cms.menu')
+        model_obj = POOL.get('ir.model')
+        model_field_obj = POOL.get('ir.model.field')
+        prod_categ_obj = POOL.get('product.category')
+
         with Transaction().start(DB_NAME, USER, CONTEXT):
+
             self.setup_defaults()
+
+            prod_categ_obj.create({'name': 'Category1'})
+            model = model_obj.search([
+                ('model', '=', 'product.category')
+            ])
+            fields = model_field_obj.search([
+                ('ttype', '=', 'char'),
+                ('model', '=', model[0])
+            ])
+            children_field = model_field_obj.search([
+                ('ttype', '=', 'one2many'),
+                ('model', '=', model[0])
+            ])
+            menu_obj.create({
+                'name': 'menu1',
+                'unique_identifier': 'identifier',
+                'website': self.site,
+                'model': model[0],
+                'children_field': children_field[0],
+                'uri_field': fields[0],
+                'title_field': fields[0],
+                'identifier_field': fields[0]
+            })
             app = self.get_app()
             with app.test_client() as c:
                 response = c.get('/en_US/')
@@ -173,7 +128,7 @@ def suite():
     suite = unittest.TestSuite()
     suite.addTests(
         unittest.TestLoader().loadTestsFromTestCase(TestMenuFor)
-        )
+    )
     return suite
 
 

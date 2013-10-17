@@ -18,7 +18,6 @@ from trytond.transaction import Transaction
 class TestCMS(NereidTestCase):
     """Test CMS"""
 
-
     def setUp(self):
         trytond.tests.test_tryton.install_module('nereid_cms')
 
@@ -36,7 +35,8 @@ class TestCMS(NereidTestCase):
 
         self.templates = {
             'localhost/home.jinja':
-                '''{% for banner in get_banner_category("test-banners").banners %}
+                '''
+                {% for banner in get_banner_category("test-banners").banners %}
                 {{ banner.get_html(banner.id)|safe }}
                 {% endfor %}
                 ''',
@@ -131,7 +131,7 @@ def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTests(
         unittest.TestLoader().loadTestsFromTestCase(TestCMS)
-        )
+    )
     return test_suite
 
 if __name__ == '__main__':
