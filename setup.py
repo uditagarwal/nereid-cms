@@ -10,31 +10,38 @@ major_version, minor_version, _ = info.get('version', '0.0.1').split('.', 2)
 major_version = int(major_version)
 minor_version = int(minor_version)
 
-requires = []
+requires = [
+    'nereid>2.4, <2.5'
+]
 for dep in info.get('depends', []):
     if not re.match(r'(ir|res|workflow|webdav)(\W|$)', dep):
-        requires.append('trytond_%s >= %s.%s, < %s.%s' %
-                (dep, major_version, minor_version, major_version,
-                    minor_version + 1))
-requires.append('trytond >= %s.%s, < %s.%s' %
-        (major_version, minor_version, major_version, minor_version + 1))
+        requires.append(
+            'trytond_%s >= %s.%s, < %s.%s' % (
+                dep, major_version, minor_version, major_version,
+                minor_version + 1
+            )
+        )
+requires.append(
+    'trytond >= %s.%s, < %s.%s' % (
+        major_version, minor_version, major_version, minor_version + 1
+    )
+)
 
-setup(name='trytond_nereid_cms',
+setup(
+    name='trytond_nereid_cms',
     version=info.get('version', '0.0.1'),
     description=info.get('description', ''),
     author=info.get('author', ''),
     author_email=info.get('email', ''),
     url=info.get('website', ''),
-    download_url="http://downloads.openlabs.co.in/" + \
-            info.get('version', '0.0.1').rsplit('.', 1)[0] + '/',
     package_dir={'trytond.modules.nereid_cms': '.'},
     packages=[
         'trytond.modules.nereid_cms',
         'trytond.modules.nereid_cms.tests',
     ],
     package_data={
-        'trytond.modules.nereid_cms': info.get('xml', []) \
-                + info.get('translation', []),
+        'trytond.modules.nereid_cms': info.get('xml', [])
+            + info.get('translation', []),
     },
     classifiers=[
         'Development Status :: 4 - Beta',

@@ -36,7 +36,8 @@ class TestBanner(NereidTestCase):
 
         self.templates = {
             'localhost/home.jinja':
-                '''{% for banner in get_banner_category("test-banners").banners %}
+                '''
+                {% for banner in get_banner_category("test-banners").banners %}
                 {{ banner.get_html(banner.id)|safe }}
                 {% endfor %}
                 ''',
@@ -163,7 +164,7 @@ class TestBanner(NereidTestCase):
                 'name': 'logo',
                 'folder': folder_id,
             })
-            banner_id = self.banner_obj.create({
+            self.banner_obj.create({
                 'name': 'Test Image Banner',
                 'category': category,
                 'type': 'image',
@@ -191,7 +192,7 @@ class TestBanner(NereidTestCase):
                 'name': 'test-banners',
                 'website': site
             })
-            banner_id = self.banner_obj.create({
+            self.banner_obj.create({
                 'name': 'Test Remote Image Banner',
                 'category': category,
                 'type': 'remote_image',
@@ -219,7 +220,7 @@ class TestBanner(NereidTestCase):
                 'name': 'test-banners',
                 'website': site
             })
-            banner_id = self.banner_obj.create({
+            self.banner_obj.create({
                 'name': 'Test Remote Image Banner',
                 'category': category,
                 'type': 'custom_code',
@@ -332,7 +333,7 @@ class TestGetHtml(NereidTestCase):
                 'name': 'logo',
                 'folder': image,
             })
-            banner_id = self.banner_obj.create({
+            self.banner_obj.create({
                 'name': 'Test Banner1',
                 'category': banner_categ,
                 'type': 'image',
@@ -353,7 +354,7 @@ class TestGetHtml(NereidTestCase):
         Get Html for banners with type `remote_image`.
         """
         with Transaction().start(DB_NAME, USER, CONTEXT):
-            site = self.setup_defaults()
+            self.setup_defaults()
 
             banner_categ = self.banner_categ_obj.create({
                 'name': 'Category B'
@@ -363,20 +364,23 @@ class TestGetHtml(NereidTestCase):
                 'name': 'Test Banner2',
                 'category': banner_categ,
                 'type': 'remote_image',
-                'remote_image_url': 'http://profile.ak.fbcdn.net/hprofile-ak-snc4/187819_122589627793765_7532740_n.jpg',
+                'remote_image_url': 'http://profile.ak.fbcdn.net/hprofile' +
+                    '-ak-snc4/187819_122589627793765_7532740_n.jpg',
                 'state': 'published'
             })
             banner = self.banner_obj.browse(banner_id)
             rv = self.banner_obj.get_html(banner_id)
             html = objectify.fromstring(rv)
-            self.assertEqual(html.find('img').get('src'), banner.remote_image_url)
+            self.assertEqual(
+                html.find('img').get('src'), banner.remote_image_url
+            )
 
     def test_0030_get_html(self):
         """
         Get Html for banners with type `custom_code`.
         """
         with Transaction().start(DB_NAME, USER, CONTEXT):
-            site = self.setup_defaults()
+            self.setup_defaults()
 
             banner_categ = self.banner_categ_obj.create({
                 'name': 'Category C'
